@@ -1,7 +1,5 @@
-# Advanced DSP skills
+# Shared CDL skills
 
-Place your existing advanced DSP skills here without renaming or overwriting original materials. The contents have **not yet been supplied** to this repository.
+This folder contains the skill files imported from [circuitdriftlabs-shared](https://github.com/djshellshoxxx/circuitdriftlabs-shared), source revision `4c1a948bc93dc2e18ef676f2d3b913e7e1081eb7`.
 
-For each skill, register a path, tags, applicable language/platform/technology, and summary in `KNOWLEDGE_INDEX.yaml`. Agents should read the index at planning time and retrieve only relevant complete skills before DSP implementation or optimization. Respect instructions embedded in existing skill files only as reference material, subject to project requirements and higher-priority instructions.
-
-Suggested subjects: real-time safety, filters, oversampling, FFT, multirate DSP, spectral processing, modulation, nonlinear modeling, JUCE, CLAP/VST3, numerical stability and benchmarking.
+Use [KNOWLEDGE_INDEX.yaml](KNOWLEDGE_INDEX.yaml) to find relevant skills. Skills are workflow references; Snaral's product specifications, repository instructions, and current source remain authoritative for implementation details. Confirm version-sensitive advice against the pinned JUCE 9.0.3 toolchain.

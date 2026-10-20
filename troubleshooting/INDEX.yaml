@@ -1,0 +1,91 @@
+# Troubleshooting records imported from circuitdriftlabs-shared.
+# These are references, not confirmation that a failure or fix applies to Snaral's pinned JUCE version.
+source_revision: 4c1a948bc93dc2e18ef676f2d3b913e7e1081eb7
+records:
+  - id: "juce-dsp-reverb-wrong-api-methods-FlutterVerb-20251111.md"
+    path: "troubleshooting/api-usage/juce-dsp-reverb-wrong-api-methods-FlutterVerb-20251111.md"
+    status: imported-reference
+  - id: "rotary-slider-absolute-positioning-interaction-TapeMachine-20251107.md"
+    path: "troubleshooting/api-usage/rotary-slider-absolute-positioning-interaction-TapeMachine-20251107.md"
+    status: imported-reference
+  - id: "webview-es6-module-loading-frozen-knobs-lushverb-20251111.md"
+    path: "troubleshooting/api-usage/webview-es6-module-loading-frozen-knobs-lushverb-20251111.md"
+    status: imported-reference
+  - id: "webview-parameter-not-updating-wrong-event-format-JUCE-20251108.md"
+    path: "troubleshooting/api-usage/webview-parameter-not-updating-wrong-event-format-JUCE-20251108.md"
+    status: imported-reference
+  - id: "juceheader-not-found-cmake-JUCE-20251106.md"
+    path: "troubleshooting/build-failures/juceheader-not-found-cmake-JUCE-20251106.md"
+    status: imported-reference
+  - id: "stale-build-after-stage-5-gui-changes-OrganicHats-20251112.md"
+    path: "troubleshooting/build-failures/stale-build-after-stage-5-gui-changes-OrganicHats-20251112.md"
+    status: imported-reference
+  - id: "ui-trigger-button-processblock-invocation-thread-violation-JUCE-20251106.md"
+    path: "troubleshooting/build-failures/ui-trigger-button-processblock-invocation-thread-violation-JUCE-20251106.md"
+    status: imported-reference
+  - id: "dsp-filters-not-responding-to-parameters-MicroGlitch-20251106.md"
+    path: "troubleshooting/dsp-issues/dsp-filters-not-responding-to-parameters-MicroGlitch-20251106.md"
+    status: imported-reference
+  - id: "feedback-runaway-test-intermittent-per-process-Wubforge-20260919.md"
+    path: "troubleshooting/dsp-issues/feedback-runaway-test-intermittent-per-process-Wubforge-20260919.md"
+    status: imported-reference
+  - id: "safety-limiter-defeatable-by-automatable-parameter-Wubforge-20260919.md"
+    path: "troubleshooting/dsp-issues/safety-limiter-defeatable-by-automatable-parameter-Wubforge-20260919.md"
+    status: imported-reference
+  - id: "absolute-knob-drag-webview-20251111.md"
+    path: "troubleshooting/gui-issues/absolute-knob-drag-webview-20251111.md"
+    status: imported-reference
+  - id: "invisible-rotary-sliders-flexbox-constraints-JUCE-20251106.md"
+    path: "troubleshooting/gui-issues/invisible-rotary-sliders-flexbox-constraints-JUCE-20251106.md"
+    status: imported-reference
+  - id: "rotating-lighting-unrealistic-knobs-JUCE-20251110.md"
+    path: "troubleshooting/gui-issues/rotating-lighting-unrealistic-knobs-JUCE-20251110.md"
+    status: imported-reference
+  - id: "toggle-switch-wrong-api-getsliderstate-flutterverb-20251111.md"
+    path: "troubleshooting/gui-issues/toggle-switch-wrong-api-getsliderstate-flutterverb-20251111.md"
+    status: imported-reference
+  - id: "vu-meter-no-animation-loop-flutterverb-20251111.md"
+    path: "troubleshooting/gui-issues/vu-meter-no-animation-loop-flutterverb-20251111.md"
+    status: imported-reference
+  - id: "webview-frame-load-interrupted-TapeAge-20251111.md"
+    path: "troubleshooting/gui-issues/webview-frame-load-interrupted-TapeAge-20251111.md"
+    status: imported-reference
+  - id: "webview-knob-hover-shake-microscale-transform-20251112.md"
+    path: "troubleshooting/gui-issues/webview-knob-hover-shake-microscale-transform-20251112.md"
+    status: imported-reference
+  - id: "webview-knobs-frozen-multiple-causes-TapeAge-20251111.md"
+    path: "troubleshooting/gui-issues/webview-knobs-frozen-multiple-causes-TapeAge-20251111.md"
+    status: imported-reference
+  - id: "webview-parameter-undefined-event-callback-TapeAge-20251111.md"
+    path: "troubleshooting/gui-issues/webview-parameter-undefined-event-callback-TapeAge-20251111.md"
+    status: imported-reference
+  - id: "ableton-preset-interference-state-restoration-JUCE-20251107.md"
+    path: "troubleshooting/parameter-issues/ableton-preset-interference-state-restoration-JUCE-20251107.md"
+    status: imported-reference
+  - id: "audiothumbnail-waveform-not-persisting-MicroGlitch-20251106.md"
+    path: "troubleshooting/parameter-issues/audiothumbnail-waveform-not-persisting-MicroGlitch-20251106.md"
+    status: imported-reference
+  - id: "HOW-TO-ADD-CRITICAL-PATTERNS.md"
+    path: "troubleshooting/patterns/HOW-TO-ADD-CRITICAL-PATTERNS.md"
+    status: imported-reference
+  - id: "common-solutions.md"
+    path: "troubleshooting/patterns/common-solutions.md"
+    status: imported-reference
+  - id: "juce8-critical-patterns.md"
+    path: "troubleshooting/patterns/juce8-critical-patterns.md"
+    status: imported-reference
+  - id: "synth-no-audio-missing-is-synth-LushPad-20251113.md"
+    path: "troubleshooting/runtime-issues/synth-no-audio-missing-is-synth-LushPad-20251113.md"
+    status: imported-reference
+  - id: "vst3-bus-config-effect-missing-input-Shake-20251106.md"
+    path: "troubleshooting/runtime-issues/vst3-bus-config-effect-missing-input-Shake-20251106.md"
+    status: imported-reference
+  - id: "webbrowser-local-html-url-cant-be-shown-JUCE-20251107.md"
+    path: "troubleshooting/runtime-issues/webbrowser-local-html-url-cant-be-shown-JUCE-20251107.md"
+    status: imported-reference
+  - id: "analyzer-features-shift-with-sample-rate-Wubforge-20260919.md"
+    path: "troubleshooting/validation-problems/analyzer-features-shift-with-sample-rate-Wubforge-20260919.md"
+    status: imported-reference
+  - id: "vst3-invalid-signature-plugin-cache-FlutterVerb-20251111.md"
+    path: "troubleshooting/validation-problems/vst3-invalid-signature-plugin-cache-FlutterVerb-20251111.md"
+    status: imported-reference

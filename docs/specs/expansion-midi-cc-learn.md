@@ -1,7 +1,9 @@
-# Feature Spec: MIDI CC Learn
+# Feature Spec: MIDI CC Learn (Core CDL Requirement)
 
 **Category:** Usability  
 **Depends on:** host-integration, parameter-state, macros-ui
+
+**Release scope:** Core CDL-compliant release. The filename is retained for link stability; this feature is not deferred to expansion.
 
 ## Objective
 Allow hardware controls to operate Snaral’s macros without requiring users to identify CC numbers manually.

@@ -1,7 +1,9 @@
-# Feature Spec: Onboarding Sound Tour
+# Feature Spec: Onboarding Sound Tour (Core CDL Requirement)
 
 **Category:** Usability  
 **Depends on:** macros-ui, preset-variation
+
+**Release scope:** Core CDL-compliant release. The filename is retained for link stability; this feature is not deferred to expansion.
 
 ## Objective
 Teach the split-layer concept and five macros through a short, skippable in-plugin demonstration.

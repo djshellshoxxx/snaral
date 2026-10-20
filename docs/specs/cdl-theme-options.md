@@ -1,6 +1,6 @@
 # Feature Spec: CDL Theme and Options
 
-**Requirement source:** Copied approved baseline at ../standards/AUDIO_APP_BASELINE.md  
+**Requirement source:** [Copied approved baseline](../../standards/AUDIO_APP_BASELINE.md)
 **Applies to:** Snaral VST3 and standalone
 
 ## Objective

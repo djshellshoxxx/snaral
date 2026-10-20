@@ -1,6 +1,6 @@
 # Feature Spec: Shared Help and First-Run Onboarding
 
-**Requirement source:** Copied approved baseline at ../standards/AUDIO_APP_BASELINE.md  
+**Requirement source:** [Copied approved baseline](../../standards/AUDIO_APP_BASELINE.md)
 **Applies to:** Snaral plug-in and standalone
 
 ## Objective
