@@ -1,5 +1,6 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
+#include "Parameters/MacroMappings.h"
 
 #include <cmath>
 #include <cstdlib>
