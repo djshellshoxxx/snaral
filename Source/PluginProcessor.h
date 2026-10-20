@@ -2,6 +2,12 @@
 
 #include <JuceHeader.h>
 #include "Engine/SineVoice.h"
+#include "Parameters/MacroStateValidation.h"
+
+#include <array>
+#include <atomic>
+#include <cstdint>
+#include <mutex>
 
 class SnaralAudioProcessor final : public juce::AudioProcessor
 {
@@ -29,6 +35,11 @@ public:
     void setStateInformation (const void*, int) override;
 
 private:
+    static juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
+    void refreshMacroSnapshot() noexcept;
+    static bool validateStateTree (const juce::ValueTree& candidate);
+    static bool parseStateValue (const juce::var& input, float& output);
+
     class Voice final : public juce::SynthesiserVoice
     {
     public:
@@ -50,6 +61,16 @@ private:
         bool appliesToChannel (int) override { return true; }
     };
 
+    juce::AudioProcessorValueTreeState parameters_;
+    std::array<std::atomic<float>*, snaral::macroParameterSpecs.size()> rawMacroValues_ {};
+    std::array<float, snaral::macroParameterSpecs.size()> activeMacroValues_ {};
+    std::atomic<std::uint64_t> stateRestoreSequence_ { 0 };
+    std::mutex stateMutex_;
     juce::Synthesiser synth_;
+    double sampleRate_ = 44100.0;
+    float currentWeightGain_ = 0.0f;
+    float targetWeightGain_ = 0.0f;
+    float weightGainStep_ = 0.0f;
+    int weightGainSamplesRemaining_ = 0;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SnaralAudioProcessor)
 };

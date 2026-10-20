@@ -21,6 +21,8 @@ For normalized macro input x in [0,1], use these rules. Gain curves are amplitud
 
 The Weight and Growl curves intentionally leave lower knob travel useful for fades. Their exact derivatives are tested and kept stable after presets ship.
 
+During the current sine-only bootstrap, Weight scales the sole prototype voice as the temporary sub signal. This is a development bridge, not the final sub/mid engine. Growl, Bite, Motion, and Space stay host-automatable but do not claim audible destinations until the corresponding mid-source, processing, modulation, and stereo modules are implemented.
+
 ## Advanced interaction
 
 Advanced controls are baseline values. Macro destinations are additive or multiplicative as shown above and clamped after composition. The UI displays baseline values in Advanced; a small macro influence indicator shows active contribution when the user changes a related control. Do not rewrite the baseline when a macro moves.

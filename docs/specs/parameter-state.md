@@ -31,6 +31,14 @@ A snapshot contains every user-editable parameter, schema/state version, active 
 
 Invalid values, unknown enum choices, truncated state, and unsupported future versions must be rejected before publication. A failed restore preserves the active state byte-for-byte at the serialized parameter level.
 
+## Host state schema v1
+
+- The JUCE host-state root is `SnaralState` with integer `schemaVersion=1`.
+- Each macro is a `PARAM` child with a stable `id` attribute and a finite `value` in its declared DSP-domain range (currently 0–100 for all five macros).
+- Version 1 contains exactly one child for each of `weight`, `growl`, `bite`, `motion`, and `space`. Missing, duplicate, unknown, malformed, non-finite, or out-of-range values reject the entire candidate. The current implementation accepts a maximum serialized size of 64 KiB.
+- On valid restore, the audio thread retains its previous coherent macro snapshot while the APVTS tree is replaced, then adopts the validated values at the next block boundary. Invalid state does not mutate the parameter tree.
+- Before release presets or project files depend on this schema, extend it through a documented migration when Advanced parameters and variation slots enter the registry. Unknown future schema versions remain rejected.
+
 ## Acceptance criteria
 
 1. Registry test confirms IDs are unique, stable, and have valid ranges/defaults.

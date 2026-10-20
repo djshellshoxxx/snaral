@@ -4,6 +4,7 @@
 
 #include "../Source/Parameters/MacroMappings.h"
 #include "../Source/Parameters/ParameterRegistry.h"
+#include "../Source/Parameters/MacroStateValidation.h"
 
 #include <array>
 #include <cassert>
@@ -51,5 +52,23 @@ int main()
     assert (snaral::spaceWidthPercent (2.0f) == 120.0f);
     assert (snaral::biteDriveOffsetDb (NAN) == 0.0f);
     assert (snaral::growlSourceBlend (0.9f, 1.0f) == 1.0f);
+
+    snaral::MacroStateCandidate validState;
+    for (const auto& spec : snaral::macroParameterSpecs)
+        assert (validState.assign (spec.id, spec.defaultValue));
+    assert (validState.isComplete());
+
+    snaral::MacroStateCandidate incompleteState;
+    assert (incompleteState.assign ("weight", 75.0f));
+    assert (! incompleteState.isComplete());
+
+    snaral::MacroStateCandidate duplicateState;
+    assert (duplicateState.assign ("weight", 75.0f));
+    assert (! duplicateState.assign ("weight", 50.0f));
+
+    snaral::MacroStateCandidate invalidState;
+    assert (! invalidState.assign ("weight", 100.01f));
+    assert (! invalidState.assign ("growl", NAN));
+    assert (! invalidState.assign ("unknown", 25.0f));
     std::cout << "ParameterContractTests passed\n";
 }
