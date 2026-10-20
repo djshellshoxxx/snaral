@@ -280,30 +280,54 @@ A release candidate is not accepted until the following pass:
 
 Automated test results, manual listening notes, supported hosts/OS versions, and any waived criterion must be recorded in the release test report. A design specification alone does not satisfy these gates.
 
-## 11. Implementation sequence
+## 11. Revised implementation sequence
+
+The release plan includes essential behaviors defined in [Performance Foundation](specs/performance-foundation.md). Optional product opportunities and new effects are excluded from the first release unless explicitly promoted through a later scope revision.
 
 ### Milestone 0 — Repository and build foundation
-- Confirm repository instructions, JUCE version/license, compiler matrix, and target formats.
-- Establish modular source layout for parameters/state, voice, sub, mid, modulation, processing, UI, and tests.
-- Produce a minimal instrument that accepts MIDI and renders a stable sine.
+- Confirm repository instructions, JUCE version/license, compiler matrix, VST3 and standalone targets, and exact build/test commands.
+- Establish modular source layout for parameter/state, MIDI/voice, sub, mid, modulation, processing, UI, presets, and tests.
+- Add CI build and unit-test jobs before DSP feature work.
+- Produce a minimal MIDI instrument rendering a stable sine.
 
-### Milestone 1 — Core split-layer instrument
-- Implement voice pitch and note lifecycle.
-- Implement mono default, sub path, two mid sources, separate levels, and mono-safe summing.
-- Add unit tests for pitch, note lifecycle, layer isolation, and stereo invariants.
+### Milestone 1 — Parameter, voice, and performance foundation
+- Implement stable parameter registry, atomic state snapshots, and serialization fixtures.
+- Implement mono/poly voice management, note lifecycle, pitch bend, glide, velocity assignments, sustain pedal CC64, CC120/123, and Panic.
+- Add global A4 tuning and semitone transpose.
+- Add independent Sub and Mid ADSR amplitude envelopes; keep the mid timbre contour separate.
+- Add unit tests for note ordering, sustain behavior, tuning, envelope timing, and state restore.
 
-### Milestone 2 — Movement and aggression
-- Add note contour, LFO sync/free, filter, drive, macro mapping, and smoothing.
-- Validate host timing fallback and bounded parameter behavior.
+### Milestone 2 — Split-layer synthesis
+- Implement sine/triangle sub and the four specified mid oscillator families.
+- Add independent layer level, layer solo/mute, deterministic source blend, band-limited operation, and centered-sub summing.
+- Add pitch, aliasing, layer-isolation, DC, and mono-fold-down tests.
 
-### Milestone 3 — UI and state
-- Add main macros, Advanced tabs/sections, automation bindings, output controls, and status.
-- Add preset JSON import/export/migration and four instance variation slots.
+### Milestone 3 — Movement and controlled aggression
+- Implement filter modes, note contour, synced/free LFO, fixed modulation destinations, two bounded drive characters, optional noise and metallic texture.
+- Implement the normative macro maps and parameter smoothing.
+- Validate host tempo fallback, phase/retrigger behavior, peak bounds, and sub isolation.
 
-### Milestone 4 — Factory content and compatibility
-- Create and level-match 10+ factory presets.
-- Run the acceptance matrix, document platform/host support, resolve failures, and produce a release test report.
-- Consider AU/CLAP only after VST3/standalone state and behavior are stable.
+### Milestone 4 — Host and state behavior
+- Complete VST3 and standalone host integration, automation IDs, transport handling, host save/restore, latency reporting, and state compatibility.
+- Implement versioned preset JSON, validation, migration, user file safety, and four named variations.
+- Pass host state round-trip and malformed-preset tests before starting factory content.
+
+### Milestone 5 — UI and factory content
+- Implement main and Advanced UI to the layout/accessibility spec, including Panic and layer audition.
+- Add preset navigation, dirty-state handling, import/export, and variation controls.
+- Author and review at least ten distinct factory presets using the factory-preset plan.
+- Run UI checks at minimum/default sizes and supported DPI scales.
+
+### Milestone 6 — Release verification
+- Run functional, MIDI fuzz, parameter stress, audio, UI, performance, and host compatibility matrices.
+- Record tested operating systems, hosts, compiler/build settings, CPU results, listening notes, and remaining defects.
+- Produce VST3 and standalone release candidates only after all release gates pass.
+
+### Deferred expansion
+- Usability proposals: preset search/favorites, undo/redo and A/B, MIDI CC Learn, variation morph, and onboarding.
+- Differentiation proposals: Snarl Trajectory, Sub Anchor, Performance Gesture Map, Motion Snapshot, and Bass Readability Monitor.
+- Additional effects: Formant Furnace, Inharmonic Striker, Harmonic Fracture, Clockwork Gate, and Spectral Shard.
+- AU and CLAP remain follow-on formats after VST3/standalone state and behavior stabilize.
 
 ## 12. Traceability
 
