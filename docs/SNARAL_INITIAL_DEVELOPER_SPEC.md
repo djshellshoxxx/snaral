@@ -3,7 +3,7 @@
 **Repository:** `djshellshoxxx/snaral`  
 **Document status:** Initial implementation specification  
 **Source:** `docs/DARK_DNB_BASS_SYNTH_DESIGN_BRIEF.md`  
-**Implementation status:** No implementation or tests are claimed by this document.
+**Implementation status:** Bootstrap code exists on `codex/initial-synth-foundation`; it is an early development slice, not a release-ready implementation.
 
 ## 1. Product definition
 
@@ -282,13 +282,13 @@ Automated test results, manual listening notes, supported hosts/OS versions, and
 
 ## 11. Revised implementation sequence
 
-The release plan includes essential behaviors defined in [Performance Foundation](specs/performance-foundation.md). Optional product opportunities and new effects are excluded from the first release unless explicitly promoted through a later scope revision.
+The [CDL shared audio-app baseline](SNARAL_SHARED_CDL_COMPLIANCE.md) is part of initial-release completion. The expansion roadmap contains only post-release features; baseline actions, onboarding, MIDI learn, A/B comparison, themes/options, visual diagnostics, and WAV export are core deliverables.
 
 ### Milestone 0 — Repository and build foundation
-- Confirm repository instructions, JUCE version/license, compiler matrix, VST3 and standalone targets, and exact build/test commands.
-- Establish modular source layout for parameter/state, MIDI/voice, sub, mid, modulation, processing, UI, presets, and tests.
-- Add CI build and unit-test jobs before DSP feature work.
-- Produce a minimal MIDI instrument rendering a stable sine.
+- Pin JUCE, verify applicable license/redistribution obligations, and establish CMake targets for VST3, standalone, and engine tests.
+- Establish modular source layout and CI build/test jobs for supported operating systems.
+- Produce a MIDI-playable sine instrument with finite output, note-off release, and a minimal development editor.
+- Record exact developer setup and build commands.
 
 ### Milestone 1 — Parameter, voice, and performance foundation
 - Implement stable parameter registry, atomic state snapshots, and serialization fixtures.
@@ -304,7 +304,7 @@ The release plan includes essential behaviors defined in [Performance Foundation
 
 ### Milestone 3 — Movement and controlled aggression
 - Implement filter modes, note contour, synced/free LFO, fixed modulation destinations, two bounded drive characters, optional noise and metallic texture.
-- Implement the normative macro maps and parameter smoothing.
+- Implement normative macro maps and parameter smoothing.
 - Validate host tempo fallback, phase/retrigger behavior, peak bounds, and sub isolation.
 
 ### Milestone 4 — Host and state behavior
@@ -312,20 +312,22 @@ The release plan includes essential behaviors defined in [Performance Foundation
 - Implement versioned preset JSON, validation, migration, user file safety, and four named variations.
 - Pass host state round-trip and malformed-preset tests before starting factory content.
 
-### Milestone 5 — UI and factory content
-- Implement main and Advanced UI to the layout/accessibility spec, including Panic and layer audition.
-- Add preset navigation, dirty-state handling, import/export, and variation controls.
-- Author and review at least ten distinct factory presets using the factory-preset plan.
-- Run UI checks at minimum/default sizes and supported DPI scales.
+### Milestone 5 — CDL workflow and UI
+- Implement Main and Advanced views, responsive/accessibility requirements, theme selection, Options, tooltips, and animation preferences.
+- Include Stop/Panic, Reset, deterministic bounded Randomize, Bypass, parameter context actions, preset selection, and Export WAV entry point.
+- Include MIDI CC Learn for macros/performance parameters, A/B compare, first-run help/onboarding, signal visualization, and a meaningful plug-in DSP CPU indicator.
+- Keep full undo/redo history, preset search/favorites, variation morph, and exchange workflows in post-release expansion.
 
-### Milestone 6 — Release verification
-- Run functional, MIDI fuzz, parameter stress, audio, UI, performance, and host compatibility matrices.
-- Record tested operating systems, hosts, compiler/build settings, CPU results, listening notes, and remaining defects.
-- Produce VST3 and standalone release candidates only after all release gates pass.
+### Milestone 6 — Content, standalone utilities, and release verification
+- Author/review at least ten distinct factory presets; implement user save/import/export.
+- Implement standalone device setup and explicit 440 Hz reference tone. Device selection remains host-owned in plug-in mode.
+- Implement offline WAV export for instrument phrases.
+- Run functional, MIDI fuzz, parameter stress, audio, UI, performance, and host compatibility matrices. Record OS/host/build settings, CPU results, listening notes, WAV interoperability, and remaining defects.
+- Produce VST3 and standalone release candidates only after all core and CDL baseline gates pass.
 
 ### Deferred expansion
 
-Do not begin expansion work until Milestone 6 release gates pass. Then use the [Staged Expansion Roadmap](SNARAL_EXPANSION_ROADMAP.md), which sequences preset/workflow improvements, sound-design differentiation, candidate effects, and AU/CLAP support. The roadmap links a separate developer spec and acceptance criteria for each selected feature. Performance Gesture Map is excluded from the roadmap and has no specification.
+Begin post-release expansion only after Milestone 6 gates pass. Use the [Staged Expansion Roadmap](SNARAL_EXPANSION_ROADMAP.md) for search/history beyond A/B, sound-design differentiation, optional effects, and AU/CLAP support. Performance Gesture Map is excluded by instruction and has no specification.
 
 ## 12. Traceability
 

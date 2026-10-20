@@ -1,7 +1,7 @@
 # Snaral Feature Specification Index
 
-**Status:** Initial feature-level specifications  
-**Parent:** [Initial Developer Specification](SNARAL_INITIAL_DEVELOPER_SPEC.md)  
+**Status:** Feature-level specification index
+**Parent:** [Initial Developer Specification](SNARAL_INITIAL_DEVELOPER_SPEC.md)
 **Source brief:** [Dark DnB Bass Synth Design Brief](DARK_DNB_BASS_SYNTH_DESIGN_BRIEF.md)
 
 This index defines the capability map and implementation dependency order. Each feature document supplies behavior contracts and acceptance checks. The parent spec remains authoritative for product scope and shared limits. A narrower feature spec clarifies details but must not weaken the centered-sub, stable-state, or real-time requirements.
@@ -46,6 +46,12 @@ The sub-layer and mid-source can be developed independently once parameter-state
 - Each module has boundary unit tests. Cross-module acceptance remains in the parent specification.
 - Numeric ranges and CPU targets are design targets; record listening or measurement results only after running them.
 
+## Project guidance
+
+- [Development Plan](DEVELOPMENT_PLAN.md)
+- [Build and Development Guide](BUILD_AND_DEVELOPMENT_GUIDE.md)
+- [CDL baseline compliance map](SNARAL_SHARED_CDL_COMPLIANCE.md)
+
 ## Product planning
 
 - [Staged expansion roadmap](SNARAL_EXPANSION_ROADMAP.md)
@@ -73,6 +79,16 @@ The sub-layer and mid-source can be developed independently once parameter-state
 - [Presets and variations](specs/preset-variation.md)
 - [Preset file contract](specs/preset-file-contract.md)
 - [Factory preset set](specs/factory-presets.md)
+
+### Shared CDL release requirements
+
+- [Themes and Options](specs/cdl-theme-options.md)
+- [Shared actions and bounded randomize](specs/cdl-common-actions.md)
+- [Offline WAV export](specs/cdl-offline-wav-export.md)
+- [Signal visualization and CPU gauge](specs/cdl-signal-visualization.md)
+- [Help and onboarding](specs/cdl-help-and-onboarding.md)
+- [MIDI CC Learn](specs/expansion-midi-cc-learn.md)
+- [A/B compare](specs/expansion-undo-ab.md) (A/B is core; extended undo/redo is expansion)
 
 ### Integration and quality
 

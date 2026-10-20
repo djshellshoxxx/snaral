@@ -1,0 +1,4 @@
+# Register only skills whose complete source files are present in this repository.
+# The shared CDL source did not provide DSP skill files; do not create placeholders as if they were skills.
+version: 1
+skills: []

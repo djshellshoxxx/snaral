@@ -4,7 +4,7 @@
 **Core plan:** [Initial Developer Specification](SNARAL_INITIAL_DEVELOPER_SPEC.md)  
 **Feature index:** [Snaral Feature Specification Index](SNARAL_FEATURE_SPEC_INDEX.md)
 
-This roadmap sequences the proposed usability, differentiation, product-value, and effect features. None is required to call the first VST3/standalone release complete. Start an expansion only after the core release gates pass and its scope is selected.
+This roadmap contains post-release features only. The CDL audio-app baseline features (including MIDI CC Learn, onboarding, A/B compare, themes/options, shared actions, signal visualization, and WAV export) are required in the core release and are tracked in the [CDL Compliance Map](SNARAL_SHARED_CDL_COMPLIANCE.md). Start an expansion only after the core release gates pass and its scope is selected.
 
 **Excluded by instruction:** Performance Gesture Map has no feature spec and is not scheduled here.
 
@@ -15,11 +15,9 @@ This roadmap sequences the proposed usability, differentiation, product-value, a
 Build after the core preset/state implementation is stable:
 
 1. [Preset browser](specs/expansion-preset-browser.md)
-2. [Undo, redo, and A/B compare](specs/expansion-undo-ab.md)
-3. [MIDI CC Learn](specs/expansion-midi-cc-learn.md)
-4. [Onboarding Sound Tour](specs/expansion-onboarding-tour.md)
-5. [Professional Preset Library](specs/expansion-preset-library.md)
-6. [Preset Exchange Bundles](specs/expansion-preset-exchange.md)
+2. [Undo/redo history and enhanced A/B workflow](specs/expansion-undo-ab.md) — basic A/B compare is core; this spec’s history and advanced compare behavior are expansion.
+3. [Professional Preset Library](specs/expansion-preset-library.md)
+4. [Preset Exchange Bundles](specs/expansion-preset-exchange.md)
 
 The browser and history system should be implemented before pack exchange so new content has a useful discovery workflow. Preset packs and exchange share manifest and validation code.
 
@@ -59,10 +57,8 @@ Run after VST3 and standalone state/automation behavior is stable. Treat each fo
 
 ### Usability
 - Preset browser with search, tags, favorites, and audition.
-- Undo/redo plus A/B compare.
-- MIDI CC Learn.
+- Undo/redo history and enhanced A/B workflow; basic A/B compare is core.
 - Four-slot variation morph.
-- Onboarding sound tour.
 
 ### Distinctiveness
 - Snarl Trajectory editor.
