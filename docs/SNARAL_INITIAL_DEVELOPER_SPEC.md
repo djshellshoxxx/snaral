@@ -324,10 +324,8 @@ The release plan includes essential behaviors defined in [Performance Foundation
 - Produce VST3 and standalone release candidates only after all release gates pass.
 
 ### Deferred expansion
-- Usability proposals: preset search/favorites, undo/redo and A/B, MIDI CC Learn, variation morph, and onboarding.
-- Differentiation proposals: Snarl Trajectory, Sub Anchor, Performance Gesture Map, Motion Snapshot, and Bass Readability Monitor.
-- Additional effects: Formant Furnace, Inharmonic Striker, Harmonic Fracture, Clockwork Gate, and Spectral Shard.
-- AU and CLAP remain follow-on formats after VST3/standalone state and behavior stabilize.
+
+Do not begin expansion work until Milestone 6 release gates pass. Then use the [Staged Expansion Roadmap](SNARAL_EXPANSION_ROADMAP.md), which sequences preset/workflow improvements, sound-design differentiation, candidate effects, and AU/CLAP support. The roadmap links a separate developer spec and acceptance criteria for each selected feature. Performance Gesture Map is excluded from the roadmap and has no specification.
 
 ## 12. Traceability
 
