@@ -23,7 +23,8 @@ public:
     {
         const auto note = std::clamp (midiNote, 0, 127);
         const auto safeVelocity = std::isfinite (velocity) ? std::clamp (velocity, 0.0f, 1.0f) : 0.0f;
-        frequency_ = 440.0 * std::exp2 ((static_cast<double> (note) - 69.0) / 12.0);
+        baseFrequency_ = 440.0 * std::exp2 ((static_cast<double> (note) - 69.0) / 12.0);
+        updateFrequency();
         amplitude_ = 0.2f * safeVelocity;
         phase_ = 0.0;
         envelope_ = 1.0f;
@@ -46,6 +47,19 @@ public:
             active_ = false;
         }
     }
+
+    // MIDI pitch wheel: 0 is minimum, 8192 center, 16383 maximum.
+    // Mapping uses asymmetric denominators so center is exactly unbent.
+    void setPitchWheel (int value) noexcept
+    {
+        const auto wheel = std::clamp (value, 0, 16383);
+        bendSemitones_ = wheel < 8192
+                             ? 2.0 * static_cast<double> (wheel - 8192) / 8192.0
+                             : 2.0 * static_cast<double> (wheel - 8192) / 8191.0;
+        updateFrequency();
+    }
+
+    double frequencyHz() const noexcept { return frequency_; }
 
     float renderSample() noexcept
     {
@@ -73,8 +87,15 @@ public:
     bool isActive() const noexcept { return active_; }
 
 private:
+    void updateFrequency() noexcept
+    {
+        frequency_ = baseFrequency_ * std::exp2 (bendSemitones_ / 12.0);
+    }
+
     double sampleRate_ = 44100.0;
+    double baseFrequency_ = 440.0;
     double frequency_ = 440.0;
+    double bendSemitones_ = 0.0;
     double phase_ = 0.0;
     float amplitude_ = 0.0f;
     float envelope_ = 0.0f;
