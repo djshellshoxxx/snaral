@@ -32,6 +32,7 @@ if(SNARAL_BUILD_PLUGIN)
         IS_MIDI_EFFECT FALSE
         EDITOR_WANTS_KEYBOARD_FOCUS FALSE
         COPY_PLUGIN_AFTER_BUILD FALSE)
+    juce_generate_juce_header(Snaral)
 
     target_sources(Snaral PRIVATE
         Source/PluginProcessor.cpp
