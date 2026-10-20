@@ -13,6 +13,7 @@ public:
     {
         sampleRate_ = std::isfinite (sampleRate) && sampleRate > 1.0 ? sampleRate : 44100.0;
         phase_ = 0.0;
+        bendSemitones_ = 0.0;
         envelope_ = 0.0f;
         active_ = false;
         releaseSamplesRemaining_ = 0;

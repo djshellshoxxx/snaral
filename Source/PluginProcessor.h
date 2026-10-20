@@ -14,6 +14,9 @@ class SnaralAudioProcessor final : public juce::AudioProcessor
 public:
     SnaralAudioProcessor();
 
+    juce::AudioProcessorValueTreeState& getParameters() noexcept { return parameters_; }
+    const juce::AudioProcessorValueTreeState& getParameters() const noexcept { return parameters_; }
+
     void prepareToPlay (double sampleRate, int maximumExpectedSamplesPerBlock) override;
     void releaseResources() override;
     bool isBusesLayoutSupported (const BusesLayout& layouts) const override;

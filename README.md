@@ -2,7 +2,7 @@
 
 Snaral is a MIDI-playable drum and bass synthesizer built around a stable, centered sub layer and a separately shaped mid voice.
 
-**Current state:** early implementation on `codex/initial-synth-foundation`. The repository contains a minimal eight-voice MIDI sine instrument and editor, plus product specifications. It is not yet a production-ready instrument.
+**Current state:** prototype. The repository contains an eight-voice MIDI sine instrument, five host-automatable macro controls, and extensive product specifications. Only Weight currently changes the sine voice level; Growl, Bite, Motion, and Space await their specified DSP destinations. This is not a finished or production-ready instrument.
 
 ## Start here
 

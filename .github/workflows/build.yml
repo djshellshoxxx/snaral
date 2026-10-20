@@ -2,7 +2,8 @@ name: Build and test
 
 on:
   push:
-    branches: [main, "codex/**"]
+    branches: [main, "codex/**", "work/**"]
+    tags: ["v*"]
   pull_request:
   workflow_dispatch:
 
@@ -35,3 +36,44 @@ jobs:
             build/Snaral_artefacts/Standalone/**
           if-no-files-found: error
           retention-days: 14
+
+  publish-release:
+    name: Publish platform builds
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: build
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - name: Download successful platform builds
+        uses: actions/download-artifact@v4
+        with:
+          pattern: snaral-*
+          path: platform-builds
+          merge-multiple: false
+
+      - name: Package builds
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p release-assets
+          for platform_dir in platform-builds/snaral-*; do
+            test -d "$platform_dir"
+            artifact_name="${platform_dir##*/}"
+            (cd "$platform_dir" && zip -qr "$GITHUB_WORKSPACE/release-assets/${artifact_name}.zip" . -x '*/.DS_Store')
+          done
+          for platform in Linux macOS Windows; do
+            if ! compgen -G "release-assets/snaral-${platform}-*.zip" > /dev/null; then
+              echo "Missing successful build package for ${platform}" >&2
+              exit 1
+            fi
+          done
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Snaral ${{ github.ref_name }}
+          generate_release_notes: true
+          prerelease: ${{ contains(github.ref_name, '-') }}
+          fail_on_unmatched_files: true
+          files: release-assets/*.zip

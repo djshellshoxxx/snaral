@@ -32,6 +32,12 @@ cmake --build build-engine --parallel 2
 ctest --test-dir build-engine --output-on-failure
 ```
 
+## CI artifacts and GitHub Releases
+
+Push a version tag such as `v0.1.0-alpha.1` to run the Linux, macOS, and Windows build-and-test matrix. The release job runs only after every platform build and test passes. It packages each platform's VST3 and standalone outputs into separate ZIP files and attaches them to the GitHub Release for that tag. A tag containing a hyphen, such as `v0.1.0-alpha.1`, is marked as a prerelease. Ordinary pushes and pull requests continue to publish temporary Actions artifacts only.
+
+Release publication requires the repository's standard `GITHUB_TOKEN` to have contents write permission. Do not publish a tag until the branch contains the intended source and the CI results have been reviewed.
+
 ## Source boundaries
 
 - `Source/Engine`: audio-rate DSP with no UI, file-format, or host dependencies.
@@ -54,6 +60,6 @@ Only `Engine` code runs on the audio thread. Keep its callback path allocation-f
 
 Before work on a shared CDL domain, consult the root [knowledge index](../KNOWLEDGE_INDEX.yaml), then the relevant skill and troubleshooting references. Imported troubleshooting entries are cross-project references; verify behavior against Snaral's pinned JUCE version and record Snaral-specific findings in `troubleshooting/`.
 
-## Current bootstrap slice
+## Current prototype scope
 
-The first implementation slice is deliberately small: a MIDI-triggered, eight-voice sine instrument and a minimal development editor. It validates the build chain and audio/MIDI path. It does not yet implement the production macros, state, presets, or CDL workflow requirements; those remain release gates in the development plan.
+The current implementation is an eight-voice sine instrument with pitch wheel support, validated host state for five macro parameters, and a main editor exposing Weight, Growl, Bite, Motion, and Space. Only Weight currently changes the sine voice level. The other four controls are exposed for host automation but do not yet have their specified audible destinations. Presets, the production sub/mid engine, the remaining macro DSP, and most CDL workflow requirements remain release gates in the development plan. CI artifacts and alpha releases must describe this scope accurately.

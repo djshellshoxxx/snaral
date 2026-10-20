@@ -53,5 +53,9 @@ int main()
     assert (std::abs (12.0 * std::log2 (voice.frequencyHz() / 440.0) - (60.0 - 69.0 - 2.0)) < 0.0001);
     voice.setPitchWheel (20000);
     assert (std::abs (12.0 * std::log2 (voice.frequencyHz() / 440.0) - (60.0 - 69.0 + 2.0)) < 0.0001);
+    // A reused voice must not carry its prior note's pitch bend into a new note.
+    voice.prepare (48000.0);
+    voice.noteOn (69, 1.0f);
+    assert (std::abs (voice.frequencyHz() - 440.0) < 0.001);
     std::cout << "SineVoiceTests passed\\n";
 }
