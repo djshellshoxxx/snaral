@@ -32,7 +32,8 @@ Stages 1–4 may overlap only where module contracts are already stable. Preset 
 1. Register the five public macro IDs, display names, normalized defaults, and normalized/domain conversion rules in a JUCE-independent header. **Implemented; tests pass locally.**
 2. Implement and test the normative macro mapping functions at boundary and interior values. **Implemented; tests pass locally.**
 3. Expose the macro contract through JUCE host parameters, validate/version host state, and connect Weight to the current sine prototype. **Implemented; JUCE build and host verification pending.**
-4. Expand the registry with Advanced IDs and validated defaults before adding those controls to host automation or presets. **Pending.**
+4. MIDI pitch wheel routed from JUCE to sine voice, with ±2-semitone endpoint and center tests. **Implemented; cross-platform CI pending.**
+5. Expand the registry with Advanced IDs and validated defaults before adding those controls to host automation or presets. **Pending.**
 
 The current code does not claim that Growl, Bite, Motion, or Space already affect the sine prototype. Their tested mapping functions remain ready for the sub/mid engine destinations. This slice does not count Stage 1 as complete.
 
