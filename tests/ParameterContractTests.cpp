@@ -1,3 +1,7 @@
+#ifdef NDEBUG
+#undef NDEBUG
+#endif
+
 #include "../Source/Parameters/MacroMappings.h"
 #include "../Source/Parameters/ParameterRegistry.h"
 

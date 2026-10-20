@@ -1,3 +1,7 @@
+#ifdef NDEBUG
+#undef NDEBUG
+#endif
+
 #include "../Source/Engine/SineVoice.h"
 
 #include <algorithm>
