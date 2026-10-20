@@ -46,6 +46,10 @@ The sub-layer and mid-source can be developed independently once parameter-state
 - Each module has boundary unit tests. Cross-module acceptance remains in the parent specification.
 - Numeric ranges and CPU targets are design targets; record listening or measurement results only after running them.
 
+## Product planning
+
+- [Feature opportunities and candidate effects](SNARAL_FEATURE_OPPORTUNITIES.md)
+
 ## Feature specifications
 
 ### Engine and controls
@@ -58,6 +62,7 @@ The sub-layer and mid-source can be developed independently once parameter-state
 - [Macro mapping](specs/macro-mapping.md)
 - [Mid processing and output](specs/processing-output.md)
 - [Real-time safety and performance](specs/realtime-performance.md)
+- [Performance foundation: envelopes, sustain, tuning, Panic, and layer audition](specs/performance-foundation.md)
 
 ### User workflow and content
 
