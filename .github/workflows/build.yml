@@ -17,7 +17,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Install Linux audio build dependencies
         if: runner.os == 'Linux'
-        run: sudo apt-get update && sudo apt-get install -y libasound2-dev libjack-jackd2-dev libfreetype6-dev libfontconfig1-dev libgl1-mesa-dev libx11-dev libxext-dev libxinerama-dev libxrandr-dev libxcursor-dev
+        run: sudo apt-get update && sudo apt-get install -y libasound2-dev libjack-jackd2-dev libfreetype6-dev libfontconfig1-dev libgl1-mesa-dev libx11-dev libxext-dev libxi-dev libxinerama-dev libxrandr-dev libxcursor-dev
       - name: Configure
         run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
       - name: Build
