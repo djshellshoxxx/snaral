@@ -24,3 +24,14 @@ jobs:
         run: cmake --build build --config Release --parallel 2
       - name: Test
         run: ctest --test-dir build -C Release --output-on-failure
+      - name: Upload plugin build outputs
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: snaral-${{ runner.os }}-${{ runner.arch }}
+          path: |
+            build/Snaral_artefacts/Release/**
+            build/Snaral_artefacts/VST3/**
+            build/Snaral_artefacts/Standalone/**
+          if-no-files-found: error
+          retention-days: 14
