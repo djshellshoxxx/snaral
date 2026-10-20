@@ -1,8 +1,10 @@
 # Snaral Shared CDL Audio-App Compliance
 
-**Source of truth:** [Copied approved CDL Audio Application Baseline](standards/AUDIO_APP_BASELINE.md)  
+**Source of truth:** [Copied approved CDL Audio Application Baseline](../standards/AUDIO_APP_BASELINE.md)
 **Product spec:** [Initial Developer Specification](SNARAL_INITIAL_DEVELOPER_SPEC.md)  
 **Status:** Design compliance mapping; implementation evidence is pending. Core plan alignment checked against the active development plan.
+
+**Imported shared reference set:** [Knowledge index](../KNOWLEDGE_INDEX.yaml), [skills](../skills/KNOWLEDGE_INDEX.yaml), [troubleshooting records](../troubleshooting/INDEX.yaml), and [standards](../standards/README.md). Imported troubleshooting records are not Snaral-verified until reproduced on the pinned toolchain.
 
 ## Applicability decisions
 

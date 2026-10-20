@@ -10,8 +10,10 @@ Snaral is a MIDI-playable drum and bass synthesizer built around a stable, cente
 - [Build and development guide](docs/BUILD_AND_DEVELOPMENT_GUIDE.md)
 - [Initial developer specification](docs/SNARAL_INITIAL_DEVELOPER_SPEC.md)
 - [Feature specification index](docs/SNARAL_FEATURE_SPEC_INDEX.md)
+- [UI layout specification](docs/specs/ui-layout.md)
 - [CDL shared baseline compliance](docs/SNARAL_SHARED_CDL_COMPLIANCE.md)
-- [DSP skill index](skills/KNOWLEDGE_INDEX.yaml) (currently empty; source skill files were not supplied)
+- [Shared knowledge index](KNOWLEDGE_INDEX.yaml)
+- [DSP and workflow skills](skills/KNOWLEDGE_INDEX.yaml)
 - [Troubleshooting index](troubleshooting/INDEX.yaml) and [entry template](troubleshooting/templates/TROUBLESHOOTING_TEMPLATE.md)
 
 ## Build

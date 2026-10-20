@@ -1,6 +1,6 @@
 # Feature Spec: Offline WAV Export
 
-**Requirement source:** Copied approved baseline at ../standards/AUDIO_APP_BASELINE.md  
+**Requirement source:** [Copied approved baseline](../../standards/AUDIO_APP_BASELINE.md)
 **Applies to:** Snaral instrument standalone and plug-in
 
 ## Objective

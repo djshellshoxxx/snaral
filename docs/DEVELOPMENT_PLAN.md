@@ -27,6 +27,15 @@ Stages 1–4 may overlap only where module contracts are already stable. Preset 
 4. Implement the parallel sub/mid engine and test sub isolation before adding advanced effects.
 5. Complete baseline workflow, content, and export requirements in the order above.
 
+### Active Stage 1 slice
+
+1. Register the five public macro IDs, display names, normalized defaults, and normalized/domain conversion rules in a JUCE-independent header.
+2. Implement and test the normative macro mapping functions at boundary and interior values.
+3. Expose the macro contract through JUCE host parameters and connect those values to DSP without UI-side mapping.
+4. Expand the registry with Advanced IDs and validated defaults before adding those controls to host automation or presets.
+
+The current implementation begins with tasks 1–2. Host parameter integration is the next vertical slice; this does not count Stage 1 as complete.
+
 ## Expansion gate
 
 Only after Stage 5 passes, select additional features from the [Expansion Roadmap](SNARAL_EXPANSION_ROADMAP.md). Performance Gesture Map remains excluded by instruction. Expansion estimates do not replace initial-release baseline work.

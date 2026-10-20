@@ -52,6 +52,8 @@ Only `Engine` code runs on the audio thread. Keep its callback path allocation-f
 5. Update the spec, traceability matrix, and [CDL compliance map](SNARAL_SHARED_CDL_COMPLIANCE.md) when behavior or scope changes.
 6. Keep generated build outputs out of version control.
 
+Before work on a shared CDL domain, consult the root [knowledge index](../KNOWLEDGE_INDEX.yaml), then the relevant skill and troubleshooting references. Imported troubleshooting entries are cross-project references; verify behavior against Snaral's pinned JUCE version and record Snaral-specific findings in `troubleshooting/`.
+
 ## Current bootstrap slice
 
 The first implementation slice is deliberately small: a MIDI-triggered, eight-voice sine instrument and a minimal development editor. It validates the build chain and audio/MIDI path. It does not yet implement the production macros, state, presets, or CDL workflow requirements; those remain release gates in the development plan.

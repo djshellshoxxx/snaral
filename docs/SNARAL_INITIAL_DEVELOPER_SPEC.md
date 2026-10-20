@@ -108,6 +108,8 @@ All continuous parameters use normalized host values from 0.0 to 1.0 unless a un
 | Motion | `motion` | 0–100% | Scales the note contour and LFO depth. At 0%, modulation depth is zero. At 100%, modulation remains within configured destination limits. It does not change oscillator pitch. |
 | Space | `space` | 0–100% | Controls mid-only stereo width from mono at 0% to the maximum validated width at 100%. The sub output must remain identical in left and right channels. |
 
+Initialized macro defaults for the first implementation are Weight 0.75, Growl 0.65, Bite 0.20, Motion 0.00, and Space 0.00. These are product defaults rather than factory-preset values; they provide an audible sub/mid patch with modulation and width initially disabled. Revisit after the first listening pass, before release parameter IDs or preset schema are declared stable.
+
 Macros are source parameters with deterministic DSP mappings. The mappings must be implemented as explicit functions or tables with tests, not scattered UI-side calculations. The displayed macro value must correspond to the host-automated value. Presets may set macro and Advanced parameters together; Advanced offset controls must make this interaction predictable.
 
 ### Advanced controls

@@ -10,6 +10,10 @@ add_executable(snaral_engine_tests tests/SineVoiceTests.cpp)
 target_include_directories(snaral_engine_tests PRIVATE Source)
 add_test(NAME snaral_engine_tests COMMAND snaral_engine_tests)
 
+add_executable(snaral_parameter_tests tests/ParameterContractTests.cpp)
+target_include_directories(snaral_parameter_tests PRIVATE Source)
+add_test(NAME snaral_parameter_tests COMMAND snaral_parameter_tests)
+
 option(SNARAL_BUILD_PLUGIN "Build VST3 and standalone targets" ON)
 if(SNARAL_BUILD_PLUGIN)
     include(FetchContent)
@@ -32,7 +36,6 @@ if(SNARAL_BUILD_PLUGIN)
         IS_MIDI_EFFECT FALSE
         EDITOR_WANTS_KEYBOARD_FOCUS FALSE
         COPY_PLUGIN_AFTER_BUILD FALSE)
-    juce_generate_juce_header(Snaral)
 
     target_sources(Snaral PRIVATE
         Source/PluginProcessor.cpp
@@ -50,4 +53,5 @@ if(SNARAL_BUILD_PLUGIN)
         PUBLIC juce::juce_recommended_config_flags
         juce::juce_recommended_lto_flags
         juce::juce_recommended_warning_flags)
+    juce_generate_juce_header(Snaral)
 endif()

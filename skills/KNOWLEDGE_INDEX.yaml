@@ -1,4 +1,107 @@
-# Register only skills whose complete source files are present in this repository.
-# The shared CDL source did not provide DSP skill files; do not create placeholders as if they were skills.
-version: 1
-skills: []
+# Imported CDL skill index
+# Source revision: 4c1a948bc93dc2e18ef676f2d3b913e7e1081eb7
+# Consult a skill when its domain applies; follow Snaral specs and project safety constraints.
+
+skills:
+  - id: "aesthetic-dreaming"
+    path: "skills/aesthetic-dreaming/SKILL.md"
+    status: copied-reference
+  - id: "au-review"
+    path: "skills/au-review/SKILL.md"
+    status: copied-reference
+  - id: "audio-artifacts-debug"
+    path: "skills/audio-artifacts-debug/SKILL.md"
+    status: copied-reference
+  - id: "audio-dsp-review"
+    path: "skills/audio-dsp-review/SKILL.md"
+    status: copied-reference
+  - id: "audio-math-explainer"
+    path: "skills/audio-math-explainer/SKILL.md"
+    status: copied-reference
+  - id: "audio-numerics-review"
+    path: "skills/audio-numerics-review/SKILL.md"
+    status: copied-reference
+  - id: "audio-performance-debug"
+    path: "skills/audio-performance-debug/SKILL.md"
+    status: copied-reference
+  - id: "audio-signal-flow-explainer"
+    path: "skills/audio-signal-flow-explainer/SKILL.md"
+    status: copied-reference
+  - id: "build-automation"
+    path: "skills/build-automation/SKILL.md"
+    status: copied-reference
+  - id: "clap-review"
+    path: "skills/clap-review/SKILL.md"
+    status: copied-reference
+  - id: "context-resume"
+    path: "skills/context-resume/SKILL.md"
+    status: copied-reference
+  - id: "deep-research"
+    path: "skills/deep-research/SKILL.md"
+    status: copied-reference
+  - id: "dsp-algorithm-guide"
+    path: "skills/dsp-algorithm-guide/SKILL.md"
+    status: copied-reference
+  - id: "game-audio-guide"
+    path: "skills/game-audio-guide/SKILL.md"
+    status: copied-reference
+  - id: "game-audio-review"
+    path: "skills/game-audio-review/SKILL.md"
+    status: copied-reference
+  - id: "juce-guide"
+    path: "skills/juce-guide/SKILL.md"
+    status: copied-reference
+  - id: "juce-review"
+    path: "skills/juce-review/SKILL.md"
+    status: copied-reference
+  - id: "plugin-ideation"
+    path: "skills/plugin-ideation/SKILL.md"
+    status: copied-reference
+  - id: "plugin-improve"
+    path: "skills/plugin-improve/SKILL.md"
+    status: copied-reference
+  - id: "plugin-lifecycle"
+    path: "skills/plugin-lifecycle/SKILL.md"
+    status: copied-reference
+  - id: "plugin-packaging"
+    path: "skills/plugin-packaging/SKILL.md"
+    status: copied-reference
+  - id: "plugin-planning"
+    path: "skills/plugin-planning/SKILL.md"
+    status: copied-reference
+  - id: "plugin-testing"
+    path: "skills/plugin-testing/SKILL.md"
+    status: copied-reference
+  - id: "plugin-workflow"
+    path: "skills/plugin-workflow/SKILL.md"
+    status: copied-reference
+  - id: "system-setup"
+    path: "skills/system-setup/SKILL.md"
+    status: copied-reference
+  - id: "troubleshooting-docs"
+    path: "skills/troubleshooting-docs/SKILL.md"
+    status: copied-reference
+  - id: "ui-mockup"
+    path: "skills/ui-mockup/SKILL.md"
+    status: copied-reference
+  - id: "ui-template-library"
+    path: "skills/ui-template-library/SKILL.md"
+    status: copied-reference
+  - id: "vst3-review"
+    path: "skills/vst3-review/SKILL.md"
+    status: copied-reference
+  - id: "webaudio-guide"
+    path: "skills/webaudio-guide/SKILL.md"
+    status: copied-reference
+  - id: "webaudio-review"
+    path: "skills/webaudio-review/SKILL.md"
+    status: copied-reference
+  - id: "workflow-reconciliation"
+    path: "skills/workflow-reconciliation/SKILL.md"
+    status: copied-reference
+  - id: "yup-guide"
+    path: "skills/yup-guide/SKILL.md"
+    status: copied-reference
+  - id: "yup-review"
+    path: "skills/yup-review/SKILL.md"
+    status: copied-reference
