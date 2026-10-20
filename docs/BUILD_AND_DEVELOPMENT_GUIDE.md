@@ -7,7 +7,7 @@
 ## Requirements
 
 - CMake 3.22 or newer.
-- A C++20 compiler supported by JUCE 9.0.3.
+- C and C++20 compilers supported by JUCE 9.0.3 (JUCE’s CMake configuration probes both languages).
 - Git and network access during first configure so CMake can fetch the pinned JUCE source.
 - Platform audio/GUI development libraries required by JUCE. The CI workflow installs Linux packages.
 - Confirm JUCE licensing and third-party notices before distributing builds; the pinned source dependency does not by itself grant redistribution rights.
