@@ -4,13 +4,13 @@
 **Parent:** [Initial Developer Specification](SNARAL_INITIAL_DEVELOPER_SPEC.md)  
 **Source brief:** [Dark DnB Bass Synth Design Brief](DARK_DNB_BASS_SYNTH_DESIGN_BRIEF.md)
 
-This index defines the capability map and implementation dependency order. Each feature document supplies the behavior contract and its own acceptance checks. The parent spec remains authoritative for product scope and shared limits; a narrower feature spec may clarify details but must not weaken the centered-sub, stable-state, or real-time requirements.
+This index defines the capability map and implementation dependency order. Each feature document supplies behavior contracts and acceptance checks. The parent spec remains authoritative for product scope and shared limits. A narrower feature spec clarifies details but must not weaken the centered-sub, stable-state, or real-time requirements.
 
 ## Capability map
 
 | Module ID | Responsibility | Depends on |
 |---|---|---|
-| parameter-state | Stable parameter IDs, normalized values, defaults, smoothing handoff, state snapshot contract | — |
+| parameter-state | Stable parameter IDs, normalized values, defaults, smoothing handoff, state snapshots | — |
 | midi-voice | MIDI events, voice modes, pitch, velocity, bend, glide, note lifecycle | parameter-state |
 | sub-layer | Dedicated low foundation generation and level path | parameter-state, midi-voice |
 | mid-source | Pitched mid sources, source blend, source position | parameter-state, midi-voice |
@@ -33,27 +33,41 @@ This index defines the capability map and implementation dependency order. Each 
 7. host-integration
 8. preset-variation
 9. macros-ui
-10. verification across integrated targets
+10. integrated verification
 
-The sub-layer and mid-source can be developed independently after parameter-state and midi-voice contracts are fixed. The remaining order is dependency-driven. Do not implement a broad modulation matrix, effect rack, sample player, or generated randomizer under these module IDs.
+The sub-layer and mid-source can be developed independently once parameter-state and midi-voice contracts are fixed. Do not add a broad modulation matrix, effect rack, sample player, or generated randomizer under these modules.
 
 ## Global engineering requirements
 
 - Keep DSP independent from UI and file-format code.
-- Audio callback performs no allocation, file I/O, or blocking lock acquisition.
+- The audio callback performs no allocation, file I/O, or blocking lock acquisition.
 - State restoration applies a complete validated snapshot at a block boundary.
 - Stable parameter IDs and normalized values are shared by DSP, UI, automation, presets, and tests.
-- Each module has unit tests at its boundary. Cross-module acceptance remains in the parent specification.
-- Numeric ranges and CPU targets are design targets from the parent spec; listen-test or measurement results must be recorded only after execution.
+- Each module has boundary unit tests. Cross-module acceptance remains in the parent specification.
+- Numeric ranges and CPU targets are design targets; record listening or measurement results only after running them.
 
-## Documents
+## Feature specifications
+
+### Engine and controls
 
 - [Parameter and state foundation](specs/parameter-state.md)
 - [MIDI voice and pitch](specs/midi-voice.md)
 - [Sub and mid source engine](specs/sub-mid-engine.md)
+- [Oscillator bank and spectral sources](specs/oscillator-bank.md)
 - [Filter and movement](specs/motion-filter.md)
+- [Macro mapping](specs/macro-mapping.md)
 - [Mid processing and output](specs/processing-output.md)
+- [Real-time safety and performance](specs/realtime-performance.md)
+
+### User workflow and content
+
 - [Macros and user interface](specs/macros-ui.md)
+- [Main and Advanced UI layout](specs/ui-layout.md)
 - [Presets and variations](specs/preset-variation.md)
+- [Preset file contract](specs/preset-file-contract.md)
+- [Factory preset set](specs/factory-presets.md)
+
+### Integration and quality
+
 - [Host integration and automation](specs/host-integration.md)
 - [Verification and release gates](specs/verification.md)
