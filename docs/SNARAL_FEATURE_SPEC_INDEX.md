@@ -48,6 +48,8 @@ The sub-layer and mid-source can be developed independently once parameter-state
 
 ## Product planning
 
+- [Staged expansion roadmap](SNARAL_EXPANSION_ROADMAP.md)
+
 - [Feature opportunities and candidate effects](SNARAL_FEATURE_OPPORTUNITIES.md)
 
 ## Feature specifications
