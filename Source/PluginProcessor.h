@@ -46,7 +46,7 @@ private:
         bool canPlaySound (juce::SynthesiserSound* sound) override;
         void startNote (int midiNote, float velocity, juce::SynthesiserSound*, int) override;
         void stopNote (float, bool allowTailOff) override;
-        void pitchWheelMoved (int) override {}
+        void pitchWheelMoved (int value) override { oscillator_.setPitchWheel (value); }
         void controllerMoved (int, int) override {}
         void renderNextBlock (juce::AudioBuffer<float>&, int startSample, int numSamples) override;
 
