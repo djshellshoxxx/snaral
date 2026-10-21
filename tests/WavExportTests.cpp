@@ -557,6 +557,31 @@ void testMidiLearnInRender()
     CHECK (eng2.midiEventsSeen == eng.midiEventsSeen + 2);
 }
 
+// BUG-009: a mapped CC took effect at the start of the block containing it (up to blockSize-1 samples early).
+void testMappedCcIsSampleAccurate()
+{
+    StubEngine eng;
+    eng.latency = 0;
+    OfflineRenderer<StubEngine> r (eng);
+    midi::MidiMapping m; m.target = P::weight; m.cc = 20;
+    const auto table = midi::MidiLearnTable::build ({ m });
+    auto s = baseSettings();
+    s.learnTable = table.get();
+    s.tailSeconds = 0.1;
+    MidiPhrase p;
+    p.notes = { { 0.0, 4.0, 36, 127, 0 } };
+    p.ccs = { { 2.0, 20, 0, 0 } };
+    const auto out = r.renderToMemory (patch(), p, s);
+    CHECK (out.status == ExportStatus::Ok);
+    const auto split = static_cast<std::size_t> (beatsToSample (2.0, s.bpm, s.sampleRate));
+    CHECK (split % static_cast<std::size_t> (s.blockSize) != 0);
+    double before = 0.0, after = 0.0;
+    for (std::size_t i = split - 20; i < split; ++i) before = std::max (before, static_cast<double> (std::abs (out.left[i])));
+    for (std::size_t i = split; i < split + 200; ++i) after = std::max (after, static_cast<double> (std::abs (out.left[i])));
+    CHECK (before > 0.05);
+    CHECK (after == 0.0);
+}
+
 // Second-application interoperability: Python's stdlib `wave` (PCM) and scipy.io.wavfile (PCM + float) decode
 // files written by us and compare against the analytic signal. SKIPPED (loudly) when python3/scipy are absent.
 void testPythonInterop()
@@ -654,6 +679,7 @@ int main()
     testClipCountAndStereoSub();
     testNormaliseAndMono();
     testMidiLearnInRender();
+    testMappedCcIsSampleAccurate();
     testPythonInterop();
     testFailuresLeaveDestinationUntouched();
     std::cout << "WavExportTests OK\n";

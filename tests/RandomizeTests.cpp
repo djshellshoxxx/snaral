@@ -83,7 +83,7 @@ void testWindowsAndSweep()
             float lo, hi;
             safeWindow (i, lo, hi);
             const auto& d = parameterTable[static_cast<std::size_t> (i)];
-            CHECK_MSG (v >= lo - 1e-3f && v <= hi + 1e-3f || v == src.v[static_cast<std::size_t> (i)],
+            CHECK_MSG ((v >= lo - 1e-3f && v <= hi + 1e-3f) || v == src.v[static_cast<std::size_t> (i)],
                        std::string (d.id) + " " + std::to_string (v));
             CHECK (v >= d.minimum && v <= d.maximum);
         }
@@ -159,7 +159,7 @@ void testAmountAndInvalid()
     const float lo = std::min (base[P::weight], full.snapshot[P::weight]) - 1e-3f, hi = std::max (base[P::weight], full.snapshot[P::weight]) + 1e-3f;
     CHECK (half.snapshot[P::weight] >= lo && half.snapshot[P::weight] <= hi);
     for (std::uint32_t s = 0; s < 3000; ++s)
-        CHECK (snapshotIsValid (randomize (randomSnapshot (s), s, s % 64, (s % 11) / 10.0f).snapshot));
+        CHECK (snapshotIsValid (randomize (randomSnapshot (s), s, s % 64, static_cast<float> (s % 11) / 10.0f).snapshot));
 
     ParamSnapshot bad = base;
     bad[P::weight] = 500.0f;
