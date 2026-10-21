@@ -32,7 +32,7 @@ private:
     std::unique_ptr<Model> model;
     juce::ListBox list;
     juce::TextButton clearAll { "Clear all" };
-    juce::Label count;
+    juce::Label count, hint;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MidiMapPanel)
 };

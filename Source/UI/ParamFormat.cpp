@@ -38,7 +38,8 @@ namespace
 {
 juce::String fixed (double v, int decimals)
 {
-    auto s = juce::String (v, decimals);
+    // juce::String (double, 0) means "as many digits as needed", so whole numbers are formatted from an integer.
+    auto s = decimals <= 0 ? juce::String (static_cast<juce::int64> (std::llround (v))) : juce::String (v, decimals);
     if (s.startsWith ("-") && s.containsOnly ("-0."))   // never show "-0.0"
         s = s.substring (1);
     return s;

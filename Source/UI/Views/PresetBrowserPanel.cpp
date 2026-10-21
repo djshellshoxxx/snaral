@@ -292,10 +292,10 @@ void PresetBrowserPanel::updateButtons()
 int PresetBrowserPanel::layoutChips (juce::Rectangle<int> area, bool apply)
 {
     int x = area.getX(), y = area.getY(), rowBottom = y;
-    const int h = 30, gap = 6;
+    const int h = 26, gap = 3;
     for (auto& c : chips)
     {
-        const int w = static_cast<int> (textWidth (fonts::body().withHeight (12.0f), c->getButtonText())) + 22;
+        const int w = static_cast<int> (textWidth (fonts::body().withHeight (12.0f), c->getButtonText())) + 36;
         if (x + w > area.getRight())
         {
             x = area.getX();
@@ -335,7 +335,7 @@ void PresetBrowserPanel::resized()
     r.removeFromTop (2);
     search.setBounds (r.removeFromTop (32));
     r.removeFromTop (8);
-    r.removeFromTop (layoutChips (r.withHeight (140), true));
+    r.removeFromTop (layoutChips (r.withHeight (110), true));
     r.removeFromTop (8);
     auto row = r.removeFromTop (32);
     sortBox.setBounds (row.removeFromLeft (row.getWidth() / 2 - 3));

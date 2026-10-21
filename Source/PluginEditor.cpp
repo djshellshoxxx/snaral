@@ -58,7 +58,6 @@ SnaralAudioProcessorEditor::SnaralAudioProcessorEditor (SnaralAudioProcessor& p,
     }
     theme->applyTo (*this);
 
-    helpUi.callbacks.closePanel = [this] { closeCard(); };
     helpUi.callbacks.rerunTour = [this] { closeCard(); startTour(); };
 
     ui::OptionsPanel::Config oc;
@@ -67,7 +66,6 @@ SnaralAudioProcessorEditor::SnaralAudioProcessorEditor (SnaralAudioProcessor& p,
     oc.formatText = ctl->isStandalone() ? "Standalone" : juce::AudioProcessor::getWrapperTypeDescription (proc.wrapperType);
     oc.onRerunTour = [this] { closeCard(); startTour(); };
     oc.onOpenHelp = [this] { closeCard(); showHelp(); };
-    oc.onClose = [this] { closeCard(); };
     oc.onReferenceTone = [this] (bool running)
     {
         if (! proc.referenceTone().setEnabled (running) && running)
@@ -434,8 +432,6 @@ void SnaralAudioProcessorEditor::updateStatusChips()
 {
     if (proc.diagnostics().syncFallbackActive())
         status.setChip ("tempo", ui::Severity::Warning, snaral::Lfo::fallbackMessage);
-    else if (proc.diagnostics().tempoUnavailable())
-        status.setChip ("tempo", ui::Severity::Info, "Host tempo unavailable");
     else
         status.clearChip ("tempo");
 

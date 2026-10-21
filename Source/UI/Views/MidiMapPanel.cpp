@@ -166,6 +166,11 @@ MidiMapPanel::MidiMapPanel (EditorController& c) : ctl (c)
     list.setTitle ("MIDI mapping list");
     list.setOutlineThickness (1);
     addAndMakeVisible (list);
+    hint.setText ("No MIDI mappings yet. Right-click a knob or control and choose MIDI learn, then move a controller.", juce::dontSendNotification);
+    hint.setFont (fonts::body());
+    hint.setJustificationType (juce::Justification::centred);
+    hint.setInterceptsMouseClicks (false, false);
+    list.addChildComponent (hint);
     clearAll.setTooltip ("Remove every MIDI mapping");
     clearAll.onClick = [this] { ctl.clearMappings(); refresh(); };
     addAndMakeVisible (clearAll);
@@ -197,6 +202,8 @@ void MidiMapPanel::refresh()
     const int n = getNumRows();
     count.setText (juce::String (n) + " of " + juce::String (midi::maxMappings) + " mappings", juce::dontSendNotification);
     clearAll.setEnabled (n > 0);
+    hint.setVisible (n == 0);
+    hint.setBounds (list.getLocalBounds().reduced (24, 40));
     repaint();
 }
 
@@ -232,5 +239,6 @@ void MidiMapPanel::resized()
     clearAll.setBounds (foot.removeFromRight (100).reduced (0, 2));
     count.setBounds (foot);
     list.setBounds (r);
+    hint.setBounds (list.getLocalBounds().reduced (24, 40));
 }
 } // namespace snaral::ui

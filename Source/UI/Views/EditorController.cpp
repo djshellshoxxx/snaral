@@ -112,7 +112,7 @@ int EditorController::toTableIndex (int apvtsIndex) const
 }
 
 // ---- parameter listener --------------------------------------------------------------------------------------
-void EditorController::parameterValueChanged (int parameterIndex, float)
+void EditorController::parameterValueChanged (int parameterIndex, float newNormalised)
 {
     dirtyCheck_.store (true, std::memory_order_relaxed);
     if (! juce::MessageManager::existsAndIsCurrentThread())
@@ -124,8 +124,9 @@ void EditorController::parameterValueChanged (int parameterIndex, float)
     if (ti < 0)
         return;
     const auto param = static_cast<P::Index> (ti);
-    if (proc.undoHistory().gestureOpen (param) && raw_[static_cast<std::size_t> (ti)] != nullptr)
-        proc.undoHistory().edit (param, raw_[static_cast<std::size_t> (ti)]->load(), nowMs());
+    // JUCE calls listeners newest-first, so the APVTS raw value may not be updated yet: convert the notified value instead.
+    if (proc.undoHistory().gestureOpen (param))
+        proc.undoHistory().edit (param, parameterTable[static_cast<std::size_t> (ti)].fromNormalized (newNormalised), nowMs());
     else
         pendingSync_.store (true, std::memory_order_relaxed); // MIDI-learn CC, host automation, snapshot publish
 }

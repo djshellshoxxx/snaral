@@ -61,7 +61,6 @@ void HeaderBar::setView (View v, bool notify)
 void HeaderBar::setBrowserOpen (bool open)
 {
     browseBtn.setToggleState (open, juce::dontSendNotification);
-    browseBtn.setButtonText (open ? "Browse (open)" : "Browse");
 }
 
 void HeaderBar::refresh()
@@ -131,8 +130,8 @@ void HeaderBar::resized()
     take (helpBtn, 30, true);
     take (optionsBtn, 62, true);
     take (midiBtn, 44, true);
-    take (advBtn, 74, true);
-    take (mainBtn, 50, true);
+    take (advBtn, 90, true);
+    take (mainBtn, 68, true);
     take (fileBtn, 44, true);
     take (browseBtn, 60, true);
     take (prevBtn, 30, false);
