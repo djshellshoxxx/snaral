@@ -101,6 +101,6 @@ mid bus, then `Furnace -> Fracture -> Drive (oversampled when selected) -> Width
 ## Release procedure (beta)
 
 1. Merge all branches into `work/beta`; CI must be green on Linux, macOS (arm64 + Intel cross-build) and Windows.
-2. Full audit (spec-by-spec wiring checklist in `docs/release/AUDIT.md`), light QA (`docs/release/QA_REPORT.md`), fix bugs.
-3. Tag `v0.2.0-beta.N`; the release workflow publishes a GitHub **pre-release** with per-platform zips.
+2. Full audit (procedure and parameter-to-DSP-to-UI-to-preset-to-automation checklist: [audit-checklist](specs/audit-checklist.md), filled in as `docs/release/AUDIT.md`), light QA ([qa-plan](specs/qa-plan.md), filled in as `docs/release/QA_REPORT.md`), fix bugs.
+3. Tag `v0.2.0-beta.N`; the release workflow publishes a GitHub **pre-release** with the per-platform archives, naming, signing notes and checks defined in [release-packaging](specs/release-packaging.md).
 4. Record only measurements that were actually run.

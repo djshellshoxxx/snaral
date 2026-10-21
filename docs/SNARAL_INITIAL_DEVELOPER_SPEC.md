@@ -3,7 +3,8 @@
 **Repository:** `djshellshoxxx/snaral`  
 **Document status:** Initial implementation specification  
 **Source:** `docs/DARK_DNB_BASS_SYNTH_DESIGN_BRIEF.md`  
-**Implementation status:** Bootstrap code exists on `codex/initial-synth-foundation`; it is an early development slice, not a release-ready implementation.
+**Implementation status:** Bootstrap code exists; the engine is still a sine prototype and this is not a release-ready implementation. The full parameter registry exists in code (`Source/Parameters/ParameterTable.h`).
+**Beta scope overlay:** the v0.2 beta adds the features marked BETA in the [Beta Implementation Plan](IMPLEMENTATION_PLAN.md) and the [Expansion Roadmap](SNARAL_EXPANSION_ROADMAP.md). Where this document defers a feature that the plan promotes (formats, undo history, preset browser, oversampling, two effects, Trajectory, Sub Anchor), the plan and the feature spec govern the beta; nothing here is weakened.
 
 ## 1. Product definition
 
@@ -33,7 +34,7 @@ The sound direction is broad and genre-oriented. Factory content and feature nam
 
 | Open question | Decision for the initial implementation |
 |---|---|
-| Plug-in formats | Build a JUCE instrument as VST3 first. Provide a standalone target for development, sound audition, and MIDI-device testing. AU and CLAP are a follow-on format milestone after the engine and state format stabilize. |
+| Plug-in formats | Build a JUCE instrument as VST3 first. Provide a standalone target for development, sound audition, and MIDI-device testing. AU and CLAP are a follow-on format milestone after the engine and state format stabilize. (Beta overlay: AU, CLAP and LV2 are built in the beta; see [format support](specs/expansion-format-support.md).) |
 | MIDI and voice mode | Default to monophonic mode. Include optional legato and glide. Provide a polyphonic mode capped at 8 voices for chords and host testing. |
 | Pitch range | Guarantee correct MIDI tracking from note 24 through 84. Test the wider range 12 through 96 for predictable operation; sub audibility is only a design target below note 60, not a promise of equal perceived level over all notes. |
 | Pitch bend | Default range is ±2 semitones, configurable from ±1 to ±12 semitones. Both sub and mid follow the same bend. |
@@ -118,14 +119,16 @@ Minimum controls and IDs:
 
 | Group | Parameter IDs | Initial range / choices |
 |---|---|---|
-| Voice | `voice_mode`, `legato`, `glide_ms`, `pitch_bend_range`, `velocity_to_level`, `velocity_to_attack` | Mono / Poly (max 8); glide 0–500 ms; bend 1–12 semitones; velocity destinations 0–100% |
-| Sub | `sub_waveform`, `sub_tune_cents`, `sub_level`, `sub_attack_ms`, `sub_release_ms` | Sine / Triangle; tune −50 to +50 cents; level 0–100%; attack 0–100 ms; release 5–2000 ms |
-| Mid sources | `mid_source_a`, `mid_source_b`, `mid_blend`, `mid_table_position`, `mid_tune_cents` | At least 4 curated source choices; blend/position 0–100%; tune −50 to +50 cents |
+| Voice | `voice_mode`, `legato`, `glide_ms`, `pitch_bend_range`, `velocity_to_level`, `velocity_to_attack`, `master_tune_hz`, `transpose_semitones` | Mono / Poly (max 8); glide 0–500 ms; bend 1–12 semitones; velocity destinations 0–100%; tune A4 430–450 Hz; transpose ±24 st |
+| Sub | `sub_waveform`, `sub_tune_cents`, `sub_level`, `sub_amp_attack_ms`, `sub_amp_decay_ms`, `sub_amp_sustain`, `sub_amp_release_ms` | Sine / Triangle; tune −50 to +50 cents; level 0–100%; attack 0–500 ms; decay 1–5000 ms; sustain 0–100%; release 1–5000 ms (see performance-foundation) |
+| Mid sources | `mid_source_a`, `mid_source_b`, `mid_blend`, `mid_table_position`, `mid_pulse_width`, `mid_tune_cents`, `mid_level`, `mid_amp_attack_ms`, `mid_amp_decay_ms`, `mid_amp_sustain`, `mid_amp_release_ms` | 4 curated source choices; blend/position/level 0–100%; pulse width 20–80%; tune −50 to +50 cents; mid amp ADSR as the sub's |
 | Filter/contour | `filter_cutoff_hz`, `filter_resonance`, `filter_type`, `contour_attack_ms`, `contour_decay_ms`, `contour_sustain`, `contour_release_ms`, `contour_shape`, `contour_depth` | Cutoff 20 Hz–20 kHz with suitable logarithmic scaling; resonance 0–80% of validated stable range; LP/BP emphasis; attack 0–500 ms, decay 5–3000 ms, sustain 0–100%, release 5–5000 ms; 3 contour shapes |
 | LFO | `lfo_mode`, `lfo_rate_hz`, `lfo_sync_division`, `lfo_waveform`, `lfo_retrigger`, `lfo_phase`, `lfo_depth` | Free / Sync; 0.02–20 Hz; divisions 1/1 through 1/32 including dotted/triplet selections; sine/triangle/saw/pulse; retrigger on/off; phase 0–360°; depth 0–100% |
 | Drive | `drive_type`, `drive_amount`, `drive_tone`, `drive_mix` | At least 2 bounded characters; amount 0–100%; tone 0–100%; mix 0–100% |
 | Texture | `noise_level`, `noise_tone`, `metal_level`, `metal_decay_ms`, `metal_tune` | Noise and metal default off; levels 0–100%; decay 10–2000 ms; tune follows MIDI with bounded inharmonic offsets |
 | Output | `output_trim_db`, `limiter_enabled`, `limiter_ceiling_db` | Trim −24 to +12 dB; limiter on/off; ceiling −12 to 0 dBFS |
+
+Additional registry groups defined by feature specs (not part of the original minimum): utility state (`bypass`, `layer_solo`, `sub_mute`, `mid_mute`; project state only), Formant Furnace (`furnace_*`), Harmonic Fracture (`fracture_*`), Snarl Trajectory (`traj_*`), oversampling (`oversampling_mode`) and Sub Anchor (`anchor_*`). `Source/Parameters/ParameterTable.h` and its group files are the authoritative list; the audit checklist verifies every ID.
 
 Ranges may be narrowed after listening tests, but IDs and units must remain consistent and any range change after a public preset release requires a state-compatibility review. Numeric range endpoints are UI/parameter limits, not claims of a particular tone.
 
@@ -318,7 +321,7 @@ The [CDL shared audio-app baseline](SNARAL_SHARED_CDL_COMPLIANCE.md) is part of 
 - Implement Main and Advanced views, responsive/accessibility requirements, theme selection, Options, tooltips, and animation preferences.
 - Include Stop/Panic, Reset, deterministic bounded Randomize, Bypass, parameter context actions, preset selection, and Export WAV entry point.
 - Include MIDI CC Learn for macros/performance parameters, A/B compare, first-run help/onboarding, signal visualization, and a meaningful plug-in DSP CPU indicator.
-- Keep full undo/redo history, preset search/favorites, variation morph, and exchange workflows in post-release expansion.
+- Keep variation morph and exchange workflows in post-release expansion. (Beta overlay: the beta also includes the 100-step undo history, preset search and favourites, per the implementation plan.)
 
 ### Milestone 6 — Content, standalone utilities, and release verification
 - Author/review at least ten distinct factory presets; implement user save/import/export.
@@ -329,7 +332,7 @@ The [CDL shared audio-app baseline](SNARAL_SHARED_CDL_COMPLIANCE.md) is part of 
 
 ### Deferred expansion
 
-Begin post-release expansion only after Milestone 6 gates pass. Use the [Staged Expansion Roadmap](SNARAL_EXPANSION_ROADMAP.md) for search/history beyond A/B, sound-design differentiation, optional effects, and AU/CLAP support. Performance Gesture Map is excluded by instruction and has no specification.
+Begin post-release expansion only after Milestone 6 gates pass (items the implementation plan promotes into the v0.2 beta are the exception and follow the beta waves). Use the [Staged Expansion Roadmap](SNARAL_EXPANSION_ROADMAP.md) for search/history beyond A/B, sound-design differentiation, optional effects, and AU/CLAP support. Performance Gesture Map is excluded by instruction and has no specification.
 
 ## 12. Traceability
 

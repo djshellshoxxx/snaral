@@ -1,90 +1,96 @@
 # Snaral Expansion Roadmap
 
-**Status:** Post-core-release feature plan  
-**Core plan:** [Initial Developer Specification](SNARAL_INITIAL_DEVELOPER_SPEC.md)  
+**Status:** Staged feature plan; items marked BETA were promoted into the v0.2 beta by the [Beta Implementation Plan](IMPLEMENTATION_PLAN.md)
+**Core plan:** [Initial Developer Specification](SNARAL_INITIAL_DEVELOPER_SPEC.md)
 **Feature index:** [Snaral Feature Specification Index](SNARAL_FEATURE_SPEC_INDEX.md)
 
-This roadmap contains post-release features only. The CDL audio-app baseline features (including MIDI CC Learn, onboarding, A/B compare, themes/options, shared actions, signal visualization, and WAV export) are required in the core release and are tracked in the [CDL Compliance Map](SNARAL_SHARED_CDL_COMPLIANCE.md). Start an expansion only after the core release gates pass and its scope is selected.
+The CDL audio-app baseline features (MIDI CC Learn, onboarding, basic A/B compare, themes and Options, shared actions, signal visualization, WAV export) are core and are tracked in the [CDL Compliance Map](SNARAL_SHARED_CDL_COMPLIANCE.md). The items below are expansions. Those marked **BETA** ship in the v0.2 beta and are no longer waiting for the core release gates; those marked **POST-BETA** have complete specs but must not be implemented until the beta is released and a scope is selected.
 
 **Excluded by instruction:** Performance Gesture Map has no feature spec and is not scheduled here.
+
+## Promotion summary
+
+| Expansion item | Spec | Status |
+|---|---|---|
+| Preset browser | [expansion-preset-browser](specs/expansion-preset-browser.md) | BETA |
+| Undo/redo history (100 steps) and extended A/B | [expansion-undo-ab](specs/expansion-undo-ab.md) | BETA |
+| Professional preset library: larger factory set (24 or more presets) | [factory-presets](specs/factory-presets.md) | BETA |
+| Professional preset library: themed packs | [expansion-preset-library](specs/expansion-preset-library.md) | POST-BETA |
+| Preset exchange bundles | [expansion-preset-exchange](specs/expansion-preset-exchange.md) | POST-BETA |
+| Variation morph | [expansion-variation-morph](specs/expansion-variation-morph.md) | POST-BETA |
+| Snarl Trajectory editor | [expansion-snarl-trajectory](specs/expansion-snarl-trajectory.md) | BETA |
+| Sub Anchor compensation | [expansion-sub-anchor](specs/expansion-sub-anchor.md) | BETA |
+| Motion Snapshot and loop | [expansion-motion-snapshot](specs/expansion-motion-snapshot.md) | POST-BETA |
+| Bass Readability Monitor | [expansion-readability-monitor](specs/expansion-readability-monitor.md) | POST-BETA |
+| MPE and per-note expression | [expansion-mpe](specs/expansion-mpe.md) | POST-BETA |
+| Nonlinear oversampling (Off, 2x, 4x) | [expansion-oversampling](specs/expansion-oversampling.md) | BETA |
+| Formant Furnace | [expansion-effect-formant-furnace](specs/expansion-effect-formant-furnace.md) | BETA |
+| Harmonic Fracture | [expansion-effect-harmonic-fracture](specs/expansion-effect-harmonic-fracture.md) | BETA |
+| Clockwork Gate | [expansion-effect-clockwork-gate](specs/expansion-effect-clockwork-gate.md) | POST-BETA |
+| Inharmonic Striker | [expansion-effect-inharmonic-striker](specs/expansion-effect-inharmonic-striker.md) | POST-BETA |
+| Spectral Shard | [expansion-effect-spectral-shard](specs/expansion-effect-spectral-shard.md) | POST-BETA |
+| Format expansion: AU, CLAP, LV2 | [expansion-format-support](specs/expansion-format-support.md) | BETA (LV2 experimental) |
 
 ## Expansion phases
 
 ### E1 — Workflow and patch management
 
-Build after the core preset/state implementation is stable:
+1. Preset browser. **BETA.**
+2. Undo/redo history and extended A/B workflow. **BETA.** Basic A/B compare is core.
+3. Professional Preset Library. **Split:** the expanded factory set is BETA; themed packs are POST-BETA.
+4. Preset Exchange Bundles. **POST-BETA.** Library packs and exchange bundles share one `.snaralpack` container, manifest and validator (the exchange manifest carries `pack_id`, `pack_version`, `min_state_version`).
 
-1. [Preset browser](specs/expansion-preset-browser.md)
-2. [Undo/redo history and enhanced A/B workflow](specs/expansion-undo-ab.md) — basic A/B compare is core; this spec’s history and advanced compare behavior are expansion.
-3. [Professional Preset Library](specs/expansion-preset-library.md)
-4. [Preset Exchange Bundles](specs/expansion-preset-exchange.md)
-
-The browser and history system should be implemented before pack exchange so new content has a useful discovery workflow. Preset packs and exchange share manifest and validation code.
+The browser and history system precede pack exchange so imported content has a discovery workflow.
 
 ### E2 — Performance and sound-design differentiation
 
-Build after core voice, parameter, state, and host contracts are stable:
-
-1. [Variation Morph](specs/expansion-variation-morph.md)
-2. [Snarl Trajectory Editor](specs/expansion-snarl-trajectory.md)
-3. [Sub Anchor Compensation](specs/expansion-sub-anchor.md)
-4. [Motion Snapshot and Loop](specs/expansion-motion-snapshot.md)
-5. [Bass Readability Monitor](specs/expansion-readability-monitor.md)
-6. [MPE and Per-Note Expression](specs/expansion-mpe.md)
-
-MPE is scheduled after the voice allocator supports reliable channel/note identity. Variation Morph should reuse exact variation snapshots rather than introduce a second preset-state mechanism.
+1. Variation Morph. **POST-BETA.** Reuses the exact variation snapshots; no second preset-state mechanism.
+2. Snarl Trajectory Editor. **BETA.**
+3. Sub Anchor Compensation. **BETA** (exact formula, default off).
+4. Motion Snapshot and Loop. **POST-BETA** (needs preset schema v2).
+5. Bass Readability Monitor. **POST-BETA** (reads existing engine taps).
+6. MPE and Per-Note Expression. **POST-BETA** (needs channel and note identity in the voice allocator).
 
 ### E3 — Nonlinear quality and effect framework
 
-Build and verify a common latency, oversampling, and dry/wet alignment contract before adding effects:
+Common latency, oversampling and dry/wet alignment come first. Add one effect at a time and keep the clean sub bypass invariant.
 
-1. [Nonlinear Oversampling Modes](specs/expansion-oversampling.md)
-2. [Formant Furnace](specs/expansion-effect-formant-furnace.md)
-3. [Clockwork Gate](specs/expansion-effect-clockwork-gate.md)
-4. [Inharmonic Striker](specs/expansion-effect-inharmonic-striker.md)
-5. [Harmonic Fracture](specs/expansion-effect-harmonic-fracture.md)
-6. [Spectral Shard](specs/expansion-effect-spectral-shard.md)
+1. Nonlinear Oversampling Modes. **BETA.**
+2. Formant Furnace. **BETA.**
+3. Harmonic Fracture. **BETA.**
+4. Clockwork Gate. **POST-BETA.**
+5. Inharmonic Striker. **POST-BETA.**
+6. Spectral Shard. **POST-BETA.**
 
-Add one effect at a time and retain the clean sub bypass invariant. Reassess each remaining effect after the previous one is tested; do not bundle all effects into one release.
+The beta ships exactly two fixed effects (Furnace then Fracture, both mid-only, before Drive). They do not form a general effect rack and the remaining three effects do not enter the beta.
 
 ### E4 — Format expansion
 
-1. [AU and CLAP Format Expansion](specs/expansion-format-support.md)
-
-Run after VST3 and standalone state/automation behavior is stable. Treat each format/OS/architecture combination as a separate build and validation target.
+AU (macOS), CLAP (all desktop OS) and LV2 (Linux, best-effort) are **BETA** with VST3 and Standalone. Each format, OS and architecture is a separate build and validation target; a format whose validator has not passed is not published as supported. See [format support](specs/expansion-format-support.md) and [release packaging](specs/release-packaging.md).
 
 ## Candidate catalog by requested category
 
 ### Usability
-- Preset browser with search, tags, favorites, and audition.
-- Undo/redo history and enhanced A/B workflow; basic A/B compare is core.
-- Four-slot variation morph.
+- Preset browser with search, tags, favourites, audition (BETA).
+- Undo/redo history and extended A/B (BETA).
+- Four-slot variation morph (POST-BETA).
 
 ### Distinctiveness
-- Snarl Trajectory editor.
-- Sub Anchor compensation.
-- Motion Snapshot and loop.
-- Bass Readability Monitor.
+- Snarl Trajectory editor (BETA). Sub Anchor compensation (BETA).
+- Motion Snapshot and loop (POST-BETA). Bass Readability Monitor (POST-BETA).
 - Performance Gesture Map is intentionally omitted and has no specification.
 
 ### Product value
-- AU/CLAP format expansion.
-- Professional preset library.
-- Nonlinear oversampling.
-- MPE/per-note expression.
-- Preset exchange bundles.
+- AU, CLAP and LV2 formats (BETA). Nonlinear oversampling (BETA). Larger factory library (BETA).
+- Preset library packs, MPE, preset exchange bundles (POST-BETA).
 
-### Effects for consideration
-- Formant Furnace.
-- Inharmonic Striker.
-- Harmonic Fracture.
-- Clockwork Gate.
-- Spectral Shard.
+### Effects
+- Formant Furnace and Harmonic Fracture (BETA). Inharmonic Striker, Clockwork Gate, Spectral Shard (POST-BETA).
 
 ## Release and planning rules
 
-- Each feature has a separate spec and acceptance criteria. Select one feature or a tightly coupled group for an implementation milestone.
+- Each feature has a separate spec and acceptance criteria. Select one feature or a tightly coupled group for a milestone.
 - Update this roadmap and the feature spec before implementation when scope, parameter IDs, or state format changes.
-- Any feature adding serialized data must define migration and project-state compatibility before code begins.
-- Any effect adding latency must specify dry/wet alignment, host latency reporting, and CPU/memory bounds before implementation.
-- Avoid feature creep in the core release: complete the first VST3/standalone gate set before beginning E1.
+- Any feature adding serialized data defines migration and project-state compatibility before code begins. POST-BETA items that need schema changes say so in their specs.
+- Any effect adding latency specifies dry/wet alignment, host latency reporting, and CPU and memory bounds before implementation.
+- Avoid feature creep: nothing outside the BETA rows enters the v0.2 beta without a recorded scope decision in the implementation plan.

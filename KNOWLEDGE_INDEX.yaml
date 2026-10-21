@@ -149,3 +149,108 @@ standards:
     status: shared-source
   - path: "standards/VST_PRODUCT_REQUIREMENTS.md"
     status: shared-source
+project_docs:
+  # Snaral-owned planning and specification documents (not imported references).
+  # spec status: core | beta | post-beta. Keep in sync with docs/SNARAL_FEATURE_SPEC_INDEX.md.
+  - path: "docs/IMPLEMENTATION_PLAN.md"
+    status: authoritative-beta-plan
+  - path: "docs/DEVELOPMENT_PLAN.md"
+    status: active-plan
+  - path: "docs/BUILD_AND_DEVELOPMENT_GUIDE.md"
+    status: active-guide
+  - path: "docs/SNARAL_INITIAL_DEVELOPER_SPEC.md"
+    status: product-contract
+  - path: "docs/SNARAL_FEATURE_SPEC_INDEX.md"
+    status: index
+  - path: "docs/SNARAL_EXPANSION_ROADMAP.md"
+    status: roadmap
+  - path: "docs/SNARAL_FEATURE_OPPORTUNITIES.md"
+    status: roadmap
+  - path: "docs/SNARAL_SHARED_CDL_COMPLIANCE.md"
+    status: compliance-map
+  - path: "docs/specs/audit-checklist.md"
+    status: beta
+  - path: "docs/specs/cdl-common-actions.md"
+    status: core
+  - path: "docs/specs/cdl-help-and-onboarding.md"
+    status: core
+  - path: "docs/specs/cdl-offline-wav-export.md"
+    status: core
+  - path: "docs/specs/cdl-signal-visualization.md"
+    status: core
+  - path: "docs/specs/cdl-theme-options.md"
+    status: core
+  - path: "docs/specs/expansion-effect-clockwork-gate.md"
+    status: post-beta
+  - path: "docs/specs/expansion-effect-formant-furnace.md"
+    status: beta
+  - path: "docs/specs/expansion-effect-harmonic-fracture.md"
+    status: beta
+  - path: "docs/specs/expansion-effect-inharmonic-striker.md"
+    status: post-beta
+  - path: "docs/specs/expansion-effect-spectral-shard.md"
+    status: post-beta
+  - path: "docs/specs/expansion-format-support.md"
+    status: beta
+  - path: "docs/specs/expansion-midi-cc-learn.md"
+    status: core
+  - path: "docs/specs/expansion-motion-snapshot.md"
+    status: post-beta
+  - path: "docs/specs/expansion-mpe.md"
+    status: post-beta
+  - path: "docs/specs/expansion-onboarding-tour.md"
+    status: core
+  - path: "docs/specs/expansion-oversampling.md"
+    status: beta
+  - path: "docs/specs/expansion-preset-browser.md"
+    status: beta
+  - path: "docs/specs/expansion-preset-exchange.md"
+    status: post-beta
+  - path: "docs/specs/expansion-preset-library.md"
+    status: post-beta
+  - path: "docs/specs/expansion-readability-monitor.md"
+    status: post-beta
+  - path: "docs/specs/expansion-snarl-trajectory.md"
+    status: beta
+  - path: "docs/specs/expansion-sub-anchor.md"
+    status: beta
+  - path: "docs/specs/expansion-undo-ab.md"
+    status: beta
+  - path: "docs/specs/expansion-variation-morph.md"
+    status: post-beta
+  - path: "docs/specs/factory-presets.md"
+    status: core
+  - path: "docs/specs/host-integration.md"
+    status: core
+  - path: "docs/specs/macro-mapping.md"
+    status: core
+  - path: "docs/specs/macros-ui.md"
+    status: core
+  - path: "docs/specs/midi-voice.md"
+    status: core
+  - path: "docs/specs/motion-filter.md"
+    status: core
+  - path: "docs/specs/oscillator-bank.md"
+    status: core
+  - path: "docs/specs/parameter-state.md"
+    status: core
+  - path: "docs/specs/performance-foundation.md"
+    status: core
+  - path: "docs/specs/preset-file-contract.md"
+    status: core
+  - path: "docs/specs/preset-variation.md"
+    status: core
+  - path: "docs/specs/processing-output.md"
+    status: core
+  - path: "docs/specs/qa-plan.md"
+    status: beta
+  - path: "docs/specs/realtime-performance.md"
+    status: core
+  - path: "docs/specs/release-packaging.md"
+    status: beta
+  - path: "docs/specs/sub-mid-engine.md"
+    status: core
+  - path: "docs/specs/ui-layout.md"
+    status: core
+  - path: "docs/specs/verification.md"
+    status: core
