@@ -26,3 +26,17 @@ ctest --test-dir build -C Release --output-on-failure
 ```
 
 The first configure fetches the pinned JUCE dependency. See the [build guide](docs/BUILD_AND_DEVELOPMENT_GUIDE.md) for prerequisites and engine-only testing.
+
+### Engine-only build and tests
+
+Without JUCE (checked on this snapshot: 2 of 2 ctest tests pass):
+
+```sh
+cmake -S . -B build-core -DSNARAL_BUILD_PLUGIN=OFF -DCMAKE_BUILD_TYPE=Release
+cmake --build build-core -j 2
+ctest --test-dir build-core --output-on-failure
+```
+
+## Wiki
+
+Wiki source pages are in [docs/wiki/](docs/wiki/Home.md): user guide, developer guide, architecture notes and codebase map.
