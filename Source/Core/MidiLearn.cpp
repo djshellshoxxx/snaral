@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cmath>
 #include <sstream>
+#include <thread>
 
 #include "State/Pure/NumberText.h"
 
@@ -228,9 +229,17 @@ void TablePublisher::publish (const std::vector<MidiMapping>& list)
 {
     auto fresh = MidiLearnTable::build (list);
     const MidiLearnTable* raw = fresh.get();
-    ring_[static_cast<std::size_t> (next_)] = std::move (fresh); // frees the table published `retired` publishes ago
+    auto& slot = ring_[static_cast<std::size_t> (next_)];
+    // Readers that entered acquire() before this point may still hold the table in `slot` (published `retired`
+    // publishes ago). Wait for them to leave before freeing it. New readers see only tables that stay alive.
+    if (slot != nullptr)
+    {
+        for (int spins = 0; readers_.load (std::memory_order_seq_cst) != 0 && spins < 200000; ++spins)
+            std::this_thread::yield();
+    }
+    slot = std::move (fresh); // frees the table published `retired` publishes ago
     next_ = (next_ + 1) % static_cast<int> (ring_.size());
-    current_.store (raw, std::memory_order_release);
+    current_.store (raw, std::memory_order_seq_cst);
 }
 
 // ------------------------------------------------------------------ runtime

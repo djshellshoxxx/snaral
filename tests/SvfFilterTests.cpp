@@ -145,7 +145,7 @@ void testEndpointsAndSweeps()
             }
             for (int n = 0; n < static_cast<int> (2.0 * sr); ++n)
             {
-                const float hz = 20.0f * std::pow (1000.0f, 0.5f - 0.5f * std::cos (twoPi * 3.0 * n / sr));
+                const float hz = 20.0f * std::pow (1000.0f, 0.5f - 0.5f * static_cast<float> (std::cos (twoPi * 3.0 * n / sr)));
                 const float y = f.process (std::sin (0.05f * static_cast<float> (n)), hz);
                 CHECK (std::isfinite (y));
                 worstMod = std::max (worstMod, static_cast<double> (std::fabs (y)));

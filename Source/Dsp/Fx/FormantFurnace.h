@@ -4,6 +4,7 @@
 // JUCE-free, header-only, no allocation / locks / I/O in process(). Owner: engine-fx.
 
 #include "FxSvf.h"
+#include "../../Parameters/MacroMappings.h"
 #include "../../Parameters/ParameterTable.h"
 #include "../../Engine/EngineTypes.h"
 
@@ -27,8 +28,10 @@ struct FormantFurnaceParams
         p.vowel = pct (P::furnace_vowel);
         p.spacing = pct (P::furnace_spacing);
         p.resonance = pct (P::furnace_resonance);
-        p.envAmount = pct (P::furnace_env_amount);
-        p.lfoAmount = pct (P::furnace_lfo_amount);
+        // macro-mapping.md: Motion multiplies the Furnace modulation depths (Motion 0 removes them).
+        const float motion = motionDepthMultiplier (s.percent (P::motion));
+        p.envAmount = pct (P::furnace_env_amount) * motion;
+        p.lfoAmount = pct (P::furnace_lfo_amount) * motion;
         p.mix = pct (P::furnace_mix);
         return p;
     }

@@ -54,6 +54,7 @@ public:
         reset();
         setResonancePercent (20.0f);
         setCutoff (1200.0f);
+        dirty_ = true; // the sample rate may have changed: coefficients must be rebuilt even if cutoff/k are unchanged
     }
 
     /// Clears integrator state (voice reuse). Coefficients are kept.

@@ -88,7 +88,7 @@ inline std::vector<double> powerSpectrum (const float* x, std::size_t n)
     for (std::size_t i = 0; i < n; ++i) a[i] = x[i];
     fft (a);
     std::vector<double> p (n / 2 + 1);
-    for (std::size_t k = 0; k <= n / 2; ++k) p[k] = std::norm (a[k]) / (static_cast<double> (n) * n);
+    for (std::size_t k = 0; k <= n / 2; ++k) p[k] = std::norm (a[k]) / (static_cast<double> (n) * static_cast<double> (n));
     return p;
 }
 struct Lcg

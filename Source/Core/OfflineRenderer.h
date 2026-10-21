@@ -365,18 +365,6 @@ private:
                 }
                 const int n = static_cast<int> (std::min<std::int64_t> (block, maxPos - pos));
 
-                // Apply CC-mapped parameter changes that fall inside this block to the snapshot, then set once.
-                std::size_t scan = cursor;
-                while (scan < tl.items.size() && tl.items[scan].sample < pos + n)
-                {
-                    const auto& it = tl.items[scan++];
-                    if (it.isCc && s.learnTable)
-                    {
-                        const auto a = learn.apply (*s.learnTable, it.cc.cc, it.cc.channel + 1, it.cc.value);
-                        if (a.mapped && a.apply)
-                            params.v[static_cast<std::size_t> (a.target)] = a.domain;
-                    }
-                }
                 engine_.setParameters (params);
 
                 HostTiming ht;
@@ -392,7 +380,16 @@ private:
                     {
                         const auto& it = tl.items[cursor++];
                         if (it.isCc && s.learnTable && s.learnTable->find (it.cc.cc, it.cc.channel + 1) >= 0)
-                            continue; // consumed by a mapping
+                        {
+                            // Consumed by a mapping: the parameter changes at exactly this sample (not at the block start).
+                            const auto a = learn.apply (*s.learnTable, it.cc.cc, it.cc.channel + 1, it.cc.value);
+                            if (a.mapped && a.apply)
+                            {
+                                params.v[static_cast<std::size_t> (a.target)] = a.domain;
+                                engine_.setParameters (params);
+                            }
+                            continue;
+                        }
                         EngineMidiEvent ev = it.ev;
                         ev.sampleOffset = 0;
                         engine_.handleMidi (ev);

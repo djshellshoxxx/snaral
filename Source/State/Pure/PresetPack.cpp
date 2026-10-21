@@ -2,6 +2,7 @@
 
 #include <set>
 
+#include "AtomicFile.h"
 #include "Json.h"
 #include "NumberText.h"
 #include "PresetFormat.h"
@@ -18,7 +19,8 @@ bool validPackId (std::string_view id) noexcept
         if (! ok)
             return false;
     }
-    return id.front() != '.';
+    return id.front() != '.' && id.back() != '.'
+           && ! fileio::isReservedDeviceName (id.substr (0, id.find ('.'))); // the id is the install folder name
 }
 
 bool validPackFileName (std::string_view name) noexcept
@@ -28,6 +30,8 @@ bool validPackFileName (std::string_view name) noexcept
     if (name.substr (name.size() - presetFileExtension.size()) != presetFileExtension)
         return false;
     if (name.front() == '.')
+        return false;
+    if (fileio::isReservedDeviceName (name.substr (0, name.find ('.'))))   // CON.snaralpreset is not creatable on Windows
         return false;
     for (const char ch : name)
     {

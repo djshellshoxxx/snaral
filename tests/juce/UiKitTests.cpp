@@ -202,6 +202,23 @@ void testFormatting()
     CHECK (! parseParamValue (*weight, "", out, &err));
     CHECK (! parseParamValue (*weight, "-5", out, &err));
     CHECK (findParamDef ("nonexistent") == nullptr);
+    {
+        const auto* mode = findParamDef ("drive_type");
+        CHECK (parseParamValue (*mode, "1", out, &err) && out == 1.0f);   // plain index from "Copy value"
+        CHECK (! parseParamValue (*mode, "7", out, &err));
+        CHECK (plainDomainValueText (*findParamDef ("filter_cutoff_hz"), 1234.5f) == "1234.5");
+        CHECK (plainDomainValueText (*mode, 1.0f) == "1");
+    }
+
+    // BUG-006: integer parameters must reject fractional input instead of rounding it silently
+    const auto* bend = findParamDef ("pitch_bend_range");
+    CHECK (bend != nullptr);
+    CHECK (parseParamValue (*bend, "5", out, &err) && out == 5.0f);
+    CHECK (! parseParamValue (*bend, "2.5", out, &err));
+    CHECK (err.isNotEmpty());
+    const auto* transpose = findParamDef ("transpose_semitones");
+    CHECK (parseParamValue (*transpose, "-7 st", out, &err) && out == -7.0f);
+    CHECK (! parseParamValue (*transpose, "0.4", out, &err));
 
     CHECK (midiNoteName (60) == "C4" || midiNoteName (60) == "C3");
     CHECK (prettyChoiceName ("source_position") != "source_position");
@@ -277,6 +294,13 @@ void testMacroKnob()
     f.set ("weight", 10.0f);
     knob.performContextAction (ContextAction::PasteValue);
     CHECK (std::abs (f.get ("weight") - 62.0f) < 1.0f);
+    // BUG-007: copy is the plain domain number, not the rounded display text
+    f.set ("weight", 62.375f);
+    knob.performContextAction (ContextAction::CopyValue);
+    CHECK (stored.containsOnly ("0123456789.") && std::abs (stored.getFloatValue() - 62.375f) < 1.0e-3f && stored.length() > 4);   // plain number, not "62%"
+    f.set ("weight", 10.0f);
+    knob.performContextAction (ContextAction::PasteValue);
+    CHECK (std::abs (f.get ("weight") - 62.375f) < 1.0e-4f);
     stored = "garbage";
     knob.performContextAction (ContextAction::PasteValue);
     CHECK (std::abs (f.get ("weight") - 62.0f) < 1.0f);
@@ -412,6 +436,10 @@ void testTrajectory()
         const float v = defaultTrajectoryCurve (cx, cy, 0.5f, static_cast<float> (i) / 20.0f);
         CHECK (std::isfinite (v) && v >= -0.001f && v <= 1.001f);
     }
+    // BUG-008: the preview curve is the DSP curve (passes through every control point) and the UI gap equals the DSP gap
+    for (int k = 0; k < 5; ++k)
+        CHECK (std::abs (defaultTrajectoryCurve (cx, cy, 0.5f, cx[static_cast<std::size_t> (k)]) - cy[static_cast<std::size_t> (k)]) < 1.0e-5f);
+    CHECK (static_cast<float> (TrajectoryGeometry::minGap) == snaral::trajMinGap);
 }
 
 void testMeters()

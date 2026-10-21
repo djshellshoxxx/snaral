@@ -2,6 +2,8 @@
 
 #include <cmath>
 
+#include "State/Pure/NumberText.h"
+
 namespace snaral::ui
 {
 const ParamDef* findParamDef (const juce::String& id)
@@ -102,6 +104,11 @@ juce::String formatParamValue (const ParamDef& d, float value, bool withUnit)
     return withSign (fixed (v, decimalsFor (d, v))) + (withUnit && unit.isNotEmpty() ? " " + unit : "");
 }
 
+juce::String plainDomainValueText (const ParamDef& d, float value)
+{
+    return juce::String (text::formatFloat (d.clampToDomain (value)));
+}
+
 juce::String formatPlainNumber (double v, const juce::String& unit)
 {
     const int dec = std::abs (v) >= 100.0 ? 0 : (std::abs (v) >= 10.0 ? 1 : 2);
@@ -185,6 +192,15 @@ bool parseParamValue (const ParamDef& d, const juce::String& textIn, float& out,
                 return true;
             }
         }
+        if (text.containsOnly ("0123456789") && text.length() <= 3)      // a copied plain index ("2")
+        {
+            const int idx = text.getIntValue();
+            if (idx < d.numChoices)
+            {
+                out = static_cast<float> (idx);
+                return true;
+            }
+        }
         return fail ("Choose one of: " + describeParamRange (d));
     }
 
@@ -235,6 +251,9 @@ bool parseParamValue (const ParamDef& d, const juce::String& textIn, float& out,
 
     if (! std::isfinite (v) || v < static_cast<double> (d.minimum) - 1e-6 || v > static_cast<double> (d.maximum) + 1e-6)
         return fail ("Out of range (" + describeParamRange (d) + ")");
+
+    if (d.isInteger() && std::abs (v - std::round (v)) > 1.0e-6)   // never round a typed/pasted value silently
+        return fail ("Whole number expected");
 
     out = d.clampToDomain (static_cast<float> (v));
     return true;

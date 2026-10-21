@@ -438,7 +438,8 @@ void MacroKnob::performContextAction (ContextAction a)
                 setValue (defaultValue, juce::sendNotificationSync);
             break;
         case ContextAction::CopyValue:
-            Clipboard::write (formatValue (getValue()));
+            Clipboard::write (def != nullptr && ! formatter ? plainDomainValueText (*def, static_cast<float> (getValue()))
+                                                              : formatValue (getValue()));
             break;
         case ContextAction::PasteValue:
         {

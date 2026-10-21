@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Theme.h"
+#include "Dsp/Trajectory.h"
 
 #include <array>
 
@@ -26,7 +27,10 @@ struct TrajectoryGeometry
 {
     /// Minimum horizontal gap between neighbouring points as a fraction of the trajectory length: dragging can never
     /// cross a neighbour or create a zero / negative segment duration.
-    static constexpr double minGap = 0.01;
+    /// Equals the DSP sanitising gap (trajMinGap = 0.02, expansion-snarl-trajectory.md), so the drawn points can never
+    /// differ from the points the engine plays.
+    static constexpr double minGap = 0.02;
+    static_assert (static_cast<float> (minGap) == trajMinGap, "UI and DSP trajectory gaps must match");
 
     /// `x` holds the five point times; index 0 and 4 are fixed (0 and 1). Returns the allowed x for `index`.
     static double clampX (const std::array<double, 5>& x, int index, double proposed) noexcept;
@@ -41,8 +45,8 @@ struct TrajectoryGeometry
 using TrajectoryCurveEvaluator = std::function<float (const std::array<float, 5>& x, const std::array<float, 5>& y,
                                                       float curve01, float t01)>;
 
-/// Fallback used when no evaluator is supplied: linear -> smoothstep -> eased exponential shaping across segments by the
-/// curve amount. This is only a stand-in for display; the editor assembly should inject the DSP evaluator.
+/// Default evaluator: the DSP curve itself (snaral::TrajectoryCurve, Source/Dsp/Trajectory.h), so the drawn curve is exactly
+/// the engine's destination curve for the same points and curve amount (the points are sanitised the same way).
 float defaultTrajectoryCurve (const std::array<float, 5>& x, const std::array<float, 5>& y, float curve01, float t01);
 
 /// Abstraction of the parameter store behind the editor, so it can be unit tested without a processor.

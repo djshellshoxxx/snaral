@@ -44,6 +44,9 @@ IoResult readFileLimited (const std::filesystem::path& file, std::size_t maxByte
 /// (<>:"/\|?*), trailing dots/spaces, avoids Windows device names, limits to `maxBytes` bytes on a UTF-8
 /// boundary, never returns an empty string ("Untitled"). The extension is NOT added.
 std::string sanitiseFileName (std::string_view name, std::size_t maxBytes = 96);
+/// Windows device names (CON, PRN, AUX, NUL, COM0-9, LPT0-9; case-insensitive, extension ignored by the caller)
+/// cannot be used as file or folder names there.
+bool isReservedDeviceName (std::string_view stem);
 
 /// Case-insensitive (ASCII) filename comparison, matching the behaviour of default Windows/macOS volumes.
 bool fileNamesEqualIgnoreCase (std::string_view a, std::string_view b);

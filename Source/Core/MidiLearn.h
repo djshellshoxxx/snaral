@@ -105,9 +105,13 @@ private:
     int count_ = 0;
 };
 
-/// Message-thread owner of the published table. The audio thread calls current(); old tables are kept alive
-/// for `retired` further publishes so a block that is mid-read is never freed (publishes are UI-rate events,
-/// far slower than a block; the audio thread must not hold a pointer across blocks).
+/// Message-thread owner of the published table.
+///
+/// Audio thread protocol (race-free): `const auto* t = pub.acquire(); ... use t for this block ...; pub.release();`
+/// (or the `ReadGuard` RAII wrapper). publish() never frees a table while a reader is inside acquire/release;
+/// it waits (message thread only, at most one audio block) for the reader to leave first.
+/// current() is the older unguarded read: it relies on the ring of `retired` extra tables and is only safe if
+/// fewer than `retired` publishes can happen while the caller holds the pointer. Prefer acquire()/release().
 class TablePublisher
 {
 public:
@@ -115,11 +119,31 @@ public:
     void publish (const std::vector<MidiMapping>& list); // message thread
     const MidiLearnTable* current() const noexcept { return current_.load (std::memory_order_acquire); }
 
+    /// Audio thread: lock-free, wait-free. Must be paired with release() (one reader at a time per publisher
+    /// is the intended use, but any number of concurrent readers is supported).
+    const MidiLearnTable* acquire() noexcept
+    {
+        readers_.fetch_add (1, std::memory_order_seq_cst);
+        return current_.load (std::memory_order_seq_cst);
+    }
+    void release() noexcept { readers_.fetch_sub (1, std::memory_order_release); }
+
+    struct ReadGuard
+    {
+        explicit ReadGuard (TablePublisher& p) noexcept : pub (p), table (p.acquire()) {}
+        ~ReadGuard() { pub.release(); }
+        ReadGuard (const ReadGuard&) = delete;
+        ReadGuard& operator= (const ReadGuard&) = delete;
+        TablePublisher& pub;
+        const MidiLearnTable* table;
+    };
+
 private:
     static constexpr int retired = 8;
     std::array<std::unique_ptr<MidiLearnTable>, retired + 1> ring_ {};
     int next_ = 0;
     std::atomic<const MidiLearnTable*> current_ { nullptr };
+    std::atomic<int> readers_ { 0 };
 };
 
 /// Result of one CC message on the audio thread.

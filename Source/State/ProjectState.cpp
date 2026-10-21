@@ -659,6 +659,19 @@ DecodeResult decode (const void* data, int sizeInBytes)
         r.errors.push_back ({ "", "state is nested too deeply" });
         return r;
     }
+    // JUCE clamps the declared text length to the available bytes, so a truncated blob could parse as a shorter,
+    // "valid" document. Require the whole declared payload to be present.
+    if (sizeInBytes <= 8 || juce::ByteOrder::littleEndianInt (bytes) != 0x21324356u)
+    {
+        r.errors.push_back ({ "", "state is truncated or not a valid Snaral state blob" });
+        return r;
+    }
+    const auto declared = static_cast<juce::int64> (static_cast<juce::uint32> (juce::ByteOrder::littleEndianInt (bytes + 4)));
+    if (declared <= 0 || declared + 1 > static_cast<juce::int64> (sizeInBytes) - 8)   // text + terminating NUL
+    {
+        r.errors.push_back ({ "", "state is truncated or not a valid Snaral state blob" });
+        return r;
+    }
     const auto xml = juce::AudioProcessor::getXmlFromBinary (data, sizeInBytes);
     if (xml == nullptr)
     {

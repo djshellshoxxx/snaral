@@ -95,7 +95,7 @@ public:
     void setParams (const LfoParams& p) noexcept
     {
         params_ = p;
-        params_.rateHz = clampf (std::isfinite (p.rateHz) ? p.rateHz : lastFreeRateHz_, 0.02f, 20.0f); // NaN keeps the last valid rate
+        params_.rateHz = clampf (std::isfinite (p.rateHz) ? p.rateHz : static_cast<float> (lastFreeRateHz_), 0.02f, 20.0f); // NaN keeps the last valid rate
         params_.phaseDegrees = clampf (sanitize (p.phaseDegrees), 0.0f, 360.0f);
         params_.depth01 = clampf (sanitize (p.depth01), 0.0f, 1.0f);
         params_.division = std::clamp (p.division, 0, lfoNumDivisions - 1);
