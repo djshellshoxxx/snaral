@@ -14,7 +14,7 @@ bool performParamValueAction (const ParamDef& def, ContextAction action, const C
             set (def.defaultValue);
             return true;
         case ContextAction::CopyValue:
-            Clipboard::write (formatParamValue (def, get()));
+            Clipboard::write (plainDomainValueText (def, get()));
             return true;
         case ContextAction::PasteValue:
         {

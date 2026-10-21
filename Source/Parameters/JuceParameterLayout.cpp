@@ -26,8 +26,8 @@ juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout()
                 {
                     const float lo = d.minimum, hi = d.maximum;
                     range = { lo, hi,
-                              [lo, hi] (float, float, float p) { return lo * std::exp (p * std::log (hi / lo)); },
-                              [lo, hi] (float, float, float v) { return std::log (v / lo) / std::log (hi / lo); },
+                              [lo, hi] (float, float, float p) { return lo * std::exp (juce::jlimit (0.0f, 1.0f, p) * std::log (hi / lo)); },
+                              [lo, hi] (float, float, float v) { return std::log (juce::jlimit (lo, hi, v) / lo) / std::log (hi / lo); },
                               [lo, hi] (float, float, float v) { return juce::jlimit (lo, hi, v); } };
                 }
                 layout.add (std::make_unique<juce::AudioParameterFloat> (

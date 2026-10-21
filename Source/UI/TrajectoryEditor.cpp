@@ -45,23 +45,9 @@ bool TrajectoryGeometry::isValid (const std::array<double, 5>& x, const std::arr
 
 float defaultTrajectoryCurve (const std::array<float, 5>& x, const std::array<float, 5>& y, float curve01, float t01)
 {
-    t01 = juce::jlimit (0.0f, 1.0f, t01);
-    int seg = 3;
-    for (int i = 0; i < 4; ++i)
-        if (t01 <= x[static_cast<std::size_t> (i + 1)])
-        {
-            seg = i;
-            break;
-        }
-    const float x0 = x[static_cast<std::size_t> (seg)], x1 = x[static_cast<std::size_t> (seg + 1)];
-    const float s = x1 > x0 ? juce::jlimit (0.0f, 1.0f, (t01 - x0) / (x1 - x0)) : 1.0f;
-
-    const float smooth = s * s * (3.0f - 2.0f * s);
-    const float expo = s <= 0.0f ? 0.0f : (s >= 1.0f ? 1.0f
-                       : (s < 0.5f ? 0.5f * std::pow (2.0f, 20.0f * s - 10.0f) : 1.0f - 0.5f * std::pow (2.0f, -20.0f * s + 10.0f)));
-    const float c = juce::jlimit (0.0f, 1.0f, curve01);
-    const float shaped = c <= 0.5f ? s + (smooth - s) * (c * 2.0f) : smooth + (expo - smooth) * ((c - 0.5f) * 2.0f);
-    return y[static_cast<std::size_t> (seg)] + (y[static_cast<std::size_t> (seg + 1)] - y[static_cast<std::size_t> (seg)]) * shaped;
+    TrajectoryCurve curve;
+    curve.set (x, y, curve01);
+    return curve.eval (t01);
 }
 
 // =================================================================================================================
@@ -139,8 +125,7 @@ TrajectoryTiming ApvtsTrajectoryBinding::getTiming() const
     t.syncMode = raw ("traj_time_mode", 0.0f) >= 0.5f;
     t.lengthMs = static_cast<double> (raw ("traj_length_ms", 600.0f));
     const int div = juce::jlimit (0, 5, static_cast<int> (raw ("traj_length_div", 3.0f) + 0.5f));
-    static const double beats[] = { 0.25, 0.5, 1.0, 2.0, 4.0, 8.0 };
-    t.divisionBeats = beats[div];
+    t.divisionBeats = trajBeatsPerDivision[div];
     if (const auto* d = findParamDef ("traj_length_div"))
         t.divisionName = prettyChoiceName (d->choices[static_cast<std::size_t> (div)]);
     t.tempoBpm = tempoProvider ? tempoProvider() : 0.0;

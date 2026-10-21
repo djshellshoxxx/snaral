@@ -17,6 +17,10 @@ juce::String midiNoteName (int midiNote);
 /// Human readable value in domain units: "1.20 kHz", "600 ms", "-3.0 dB", "75%", "Saw Stack", "On".
 juce::String formatParamValue (const ParamDef&, float domainValue, bool withUnit = true);
 
+/// Context-menu "Copy value": the plain domain number (shortest text that round-trips the float, no unit, no
+/// display rounding; choices and booleans copy their index), as cdl-common-actions.md requires.
+juce::String plainDomainValueText (const ParamDef&, float domainValue);
+
 /// Parses text a user typed or pasted. Accepts a trailing unit ("1.2k", "1200 Hz", "0.6 s", "-3 dB", "50%"), choice names
 /// and bool words. Values outside the parameter range are REJECTED (not clamped), so a bad paste leaves the last valid
 /// value untouched. On failure `error` (when given) receives a short message including the valid range.
