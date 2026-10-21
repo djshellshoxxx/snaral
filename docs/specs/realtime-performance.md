@@ -54,3 +54,18 @@ CPU measurement (acceptance 4): `tools/bench_output_stage.cpp`, `g++ 13.3.0 -O2 
 | 1024 | 11.14 / 32.8 / 36 | 30.16 / 71.4 / 229 | 49.76 / 80.3 / 90 | 7.11 / 44.2 / 71 | 10.41 / 32.2 / 43 | 21.51 / 55.8 / 2041 | 18.98 / 51.1 / 136 |
 
 The worst-callback column is dominated by multi-millisecond stalls of the shared VM (the same code runs in 5 us medians), so it demonstrates nothing about the DSP's real worst case; a quiet-machine, 60 s, full-engine measurement is still required for the 10 % target. Medians show that the whole output chain with 4x oversampling costs well under 1 % of one core at 48 kHz (block 256: Drive 4x 12.3 + Width 2.8 + Limiter 5.3 us of a 5333 us budget, about 0.4 %), leaving the 10 % budget to the voices. No performance result for the complete synth is assumed.
+
+## Measured engine CPU (engine-integration branch)
+
+Measured by `tools/bench_engine.cpp` (8 sounding voices, default patch, 48 kHz, 256-sample blocks, 20 runs of 1000 blocks, steady state).
+Compiler: g++ 13.3.0 (Ubuntu 24.04), `-O2 -DNDEBUG` for the bench, `libsnaral_core.a` built with `-O3 -DNDEBUG`.
+Machine: 2-core Intel Xeon @ 2.80 GHz VM (shared, so worst-of-20 is noisy). Single thread, no JUCE.
+
+| Oversampling mode | Median CPU (% of real time) | Worst of 20 |
+|---|---|---|
+| 0 (off) | 6.4 | 7.2 |
+| 1 | 6.8 | 10.8 |
+| 2 | 7.0 | 8.9 |
+
+Caveats: default patch only (drive and Fracture are at their default amounts, so the oversampled path may be partly idle);
+heavier patches and other sample rates were not measured.

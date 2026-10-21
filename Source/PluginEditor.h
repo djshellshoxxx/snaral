@@ -2,6 +2,8 @@
 
 #include <JuceHeader.h>
 #include "PluginProcessor.h"
+#include "Parameters/MacroMappings.h"
+#include "Parameters/MacroStateValidation.h"
 
 #include <array>
 #include <memory>

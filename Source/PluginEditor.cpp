@@ -53,7 +53,7 @@ SnaralAudioProcessorEditor::SnaralAudioProcessorEditor (SnaralAudioProcessor& pr
         macroAttachments_[i] = std::make_unique<SliderAttachment> (processor.getParameters(), id, slider);
     }
 
-    status_.setText ("MIDI Sine Foundation  |  Development build", juce::dontSendNotification);
+    status_.setText ("Sub + Mid engine  |  Development build", juce::dontSendNotification);
     status_.setJustificationType (juce::Justification::centred);
     status_.setColour (juce::Label::textColourId, juce::Colour::fromRGB (138, 146, 158));
     addAndMakeVisible (status_);
