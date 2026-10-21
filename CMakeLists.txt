@@ -118,6 +118,7 @@ if(SNARAL_BUILD_PLUGIN)
         EDITOR_WANTS_KEYBOARD_FOCUS TRUE
         VST3_CATEGORIES Instrument Synth
         COPY_PLUGIN_AFTER_BUILD FALSE
+        LV2URI "https://circuitdriftlabs.com/plugins/snaral"
         PRODUCT_NAME "Snaral")
 
     # Application sources: every .cpp under Source/ (including Source/Core and Source/Engine).
