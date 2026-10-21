@@ -26,4 +26,14 @@ if (( with_tests )); then
     < <(ctest --test-dir "$build" -N -C "$cfg" | sed -n 's/^ *Test *#[0-9]*: *\(snaral_juce_[A-Za-z0-9_]*\).*/\1/p')
 fi
 echo "Building ${targets[*]} (tests=$with_tests, jobs=$jobs)"
-cmake --build "$build" --config "$cfg" --parallel "$jobs" "${args[@]}"
+log="$(mktemp)"
+set +e
+cmake --build "$build" --config "$cfg" --parallel "$jobs" "${args[@]}" 2>&1 | tee "$log"
+rc=${PIPESTATUS[0]}
+set -e
+if (( rc != 0 )); then
+  # Surface compiler/linker errors as workflow annotations (job logs are not readable via the unauthenticated API).
+  grep -E "error:|error LNK|undefined reference|Undefined symbols|ld: " "$log" | sort -u | head -15 \
+    | while IFS= read -r line; do echo "::error title=build error::${line:0:400}"; done
+fi
+exit "$rc"
