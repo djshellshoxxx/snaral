@@ -138,6 +138,9 @@ if(SNARAL_BUILD_PLUGIN)
 
     # Application sources: every .cpp under Source/ (including Source/Core and Source/Engine).
     file(GLOB_RECURSE SNARAL_PLUGIN_SOURCES CONFIGURE_DEPENDS Source/*.cpp)
+    # Source/State/Pure is built once as snaral_state_pure (linked globally via link_libraries); compiling it again here
+    # produced duplicate symbols with the macOS linker.
+    list(FILTER SNARAL_PLUGIN_SOURCES EXCLUDE REGEX "/Source/State/Pure/")
     target_sources(Snaral PRIVATE ${SNARAL_PLUGIN_SOURCES})
     target_include_directories(Snaral PRIVATE Source)
     target_compile_definitions(Snaral PUBLIC
@@ -171,6 +174,7 @@ if(SNARAL_BUILD_PLUGIN)
     # JUCE-dependent tests: tests/juce/*Tests.cpp link juce_core/juce_data_structures + Source/ (non-GUI).
     file(GLOB SNARAL_JUCE_TEST_SOURCES CONFIGURE_DEPENDS tests/juce/*Tests.cpp)
     file(GLOB_RECURSE SNARAL_JUCE_TEST_LIB_SOURCES CONFIGURE_DEPENDS Source/Core/*.cpp Source/State/*.cpp Source/Parameters/*.cpp)
+    list(FILTER SNARAL_JUCE_TEST_LIB_SOURCES EXCLUDE REGEX "/Source/State/Pure/")
     foreach(test_src ${SNARAL_JUCE_TEST_SOURCES})
         get_filename_component(test_name ${test_src} NAME_WE)
         string(TOLOWER ${test_name} test_target)
