@@ -58,11 +58,19 @@ set_target_properties(snaral_state_pure PROPERTIES POSITION_INDEPENDENT_CODE ON)
 link_libraries(snaral_state_pure)
 # <<< END state worker <<<
 
+# >>> BEGIN engine-integration: core engine/DSP sources are compiled ONCE into a static library that every JUCE-free
+# test links (instead of recompiling SnaralEngine.cpp into each of the test executables) >>>
+add_library(snaral_core STATIC ${SNARAL_CORE_SOURCES})
+target_include_directories(snaral_core PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/Source")
+set_target_properties(snaral_core PROPERTIES POSITION_INDEPENDENT_CODE ON)
+# <<< END engine-integration <<<
+
 foreach(test_src ${SNARAL_TEST_SOURCES})
     get_filename_component(test_name ${test_src} NAME_WE)
     string(TOLOWER ${test_name} test_target)
-    add_executable(snaral_${test_target} ${test_src} ${SNARAL_CORE_SOURCES})
+    add_executable(snaral_${test_target} ${test_src})
     target_include_directories(snaral_${test_target} PRIVATE Source)
+    target_link_libraries(snaral_${test_target} PRIVATE snaral_core)
     add_test(NAME snaral_${test_target} COMMAND snaral_${test_target})
 endforeach()
 
