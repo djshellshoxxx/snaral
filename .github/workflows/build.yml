@@ -1,79 +1,267 @@
-name: Build and test
+name: Build, test and release
 
 on:
   push:
-    branches: [main, "codex/**", "work/**"]
-    tags: ["v*"]
+    branches: [main, "work/**"]
+    tags: ["v*-beta*"]
   pull_request:
   workflow_dispatch:
+    inputs:
+      version:
+        description: "Version string for the build, e.g. 0.2.0-beta.1 (no leading v)"
+        required: true
+        type: string
+      publish:
+        description: "Also publish a GitHub PRE-release tagged v<version> from this commit"
+        required: false
+        type: boolean
+        default: false
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  # Never cancel a tag (release) build; cancel superseded branch / PR runs.
+  cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
+
+permissions:
+  contents: read
+
+env:
+  CMAKE_BUILD_TYPE: Release
+  DEPS_DIR: ${{ github.workspace }}/.deps
 
 jobs:
+  meta:
+    name: Resolve version
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      version: ${{ steps.v.outputs.version }}
+      tag: ${{ steps.v.outputs.tag }}
+      publish: ${{ steps.v.outputs.publish }}
+    steps:
+      - name: Compute version
+        id: v
+        shell: bash
+        env:
+          EVENT: ${{ github.event_name }}
+          REF_TYPE: ${{ github.ref_type }}
+          REF_NAME: ${{ github.ref_name }}
+          INPUT_VERSION: ${{ inputs.version }}
+          INPUT_PUBLISH: ${{ inputs.publish }}
+          SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          publish=false
+          if [[ "$EVENT" == "push" && "$REF_TYPE" == "tag" ]]; then
+            version="${REF_NAME#v}"
+            publish=true
+          elif [[ "$EVENT" == "workflow_dispatch" ]]; then
+            version="${INPUT_VERSION#v}"
+            [[ "$INPUT_PUBLISH" == "true" ]] && publish=true
+          else
+            version="0.0.0-ci.${SHA:0:7}"
+          fi
+          if ! [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.]+)?$ ]]; then
+            echo "Invalid version '$version' (expected MAJOR.MINOR.PATCH[-suffix])" >&2
+            exit 1
+          fi
+          if [[ "$publish" == true && "$version" != *-* ]]; then
+            echo "Refusing to publish '$version': beta releases need a pre-release suffix like -beta.1" >&2
+            exit 1
+          fi
+          {
+            echo "version=$version"
+            echo "tag=v$version"
+            echo "publish=$publish"
+          } >> "$GITHUB_OUTPUT"
+          echo "Version: $version (publish=$publish)"
+
   build:
+    name: ${{ matrix.label }}
+    needs: meta
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 90
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-24.04, macos-15, windows-2022]
-    runs-on: ${{ matrix.os }}
+        include:
+          - label: Windows x64
+            runner: windows-2022
+            os: windows
+            arch: x64
+            generator: -A x64
+            cmake_extra: ""
+            run_tests: true
+          - label: macOS arm64
+            runner: macos-15
+            os: macos
+            arch: arm64
+            generator: -G Ninja
+            cmake_extra: -DCMAKE_OSX_ARCHITECTURES=arm64
+            run_tests: true
+          # Cross-compiled on the arm64 runner. A hosted Intel runner (macos-15-intel) also exists in
+          # actions/runner-images, but Intel images are being phased out, so we do not depend on it.
+          # The x86_64 binaries cannot be run here, so no ctest for this entry.
+          - label: macOS x86_64 (cross-built)
+            runner: macos-15
+            os: macos
+            arch: x86_64
+            generator: -G Ninja
+            cmake_extra: -DCMAKE_OSX_ARCHITECTURES=x86_64
+            run_tests: false
+          - label: Linux x64
+            runner: ubuntu-24.04
+            os: linux
+            arch: x64
+            generator: -G Ninja
+            cmake_extra: ""
+            run_tests: true
+    defaults:
+      run:
+        shell: bash
+    env:
+      VERSION: ${{ needs.meta.outputs.version }}
+      PKG_NAME: snaral-${{ needs.meta.outputs.version }}-${{ matrix.os }}-${{ matrix.arch }}
     steps:
       - uses: actions/checkout@v4
-      - name: Install Linux audio build dependencies
-        if: runner.os == 'Linux'
-        run: sudo apt-get update && sudo apt-get install -y libasound2-dev libjack-jackd2-dev libfreetype6-dev libfontconfig1-dev libgl1-mesa-dev libx11-dev libxext-dev libxi-dev libxinerama-dev libxrandr-dev libxcursor-dev
+
+      - name: Install Linux build dependencies
+        if: matrix.os == 'linux'
+        run: |
+          set -euo pipefail
+          source tools/ci_lib.sh
+          retry 4 15 sudo apt-get update
+          # JUCE docs "Linux Dependencies" (audio_devices, graphics, gui_basics, opengl) with curl/webkit off
+          # (JUCE_USE_CURL=0, JUCE_WEB_BROWSER=0), plus build tooling and xvfb for pluginval.
+          retry 4 15 sudo apt-get install -y --no-install-recommends \
+            build-essential cmake ninja-build git ccache zip unzip curl xvfb \
+            libasound2-dev libjack-jackd2-dev \
+            libfreetype-dev libfontconfig1-dev \
+            libx11-dev libxcomposite-dev libxcursor-dev libxext-dev libxinerama-dev libxi-dev libxrandr-dev libxrender-dev \
+            libglu1-mesa-dev mesa-common-dev libegl1-mesa-dev
+
+      - name: Install macOS build tools
+        if: matrix.os == 'macos'
+        run: |
+          set -euo pipefail
+          source tools/ci_lib.sh
+          for t in ninja ccache; do
+            command -v "$t" >/dev/null || retry 3 15 brew install "$t"
+          done
+
+      - name: Cache JUCE checkout
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.DEPS_DIR }}/JUCE
+          key: deps-juce-${{ hashFiles('CMakeLists.txt') }}
+
+      - name: Cache ccache
+        if: matrix.os != 'windows'
+        uses: actions/cache@v4
+        with:
+          path: ~/.ccache
+          key: ccache-${{ matrix.os }}-${{ matrix.arch }}-${{ hashFiles('CMakeLists.txt') }}-${{ github.sha }}
+          restore-keys: |
+            ccache-${{ matrix.os }}-${{ matrix.arch }}-${{ hashFiles('CMakeLists.txt') }}-
+            ccache-${{ matrix.os }}-${{ matrix.arch }}-
+
+      - name: Fetch JUCE and clap-juce-extensions
+        run: tools/ci_fetch_deps.sh "$DEPS_DIR"
+
       - name: Configure
-        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+        env:
+          GENERATOR: ${{ matrix.generator }}
+          CMAKE_EXTRA: ${{ matrix.cmake_extra }}
+          USE_CCACHE: ${{ matrix.os != 'windows' }}
+        run: |
+          set -euo pipefail
+          launcher=()
+          if [[ "$USE_CCACHE" == true ]]; then
+            export CCACHE_DIR="$HOME/.ccache" CCACHE_MAXSIZE=500M
+            launcher=(-DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache)
+          fi
+          # shellcheck disable=SC2086  # GENERATOR / CMAKE_EXTRA are trusted matrix constants, word-split on purpose
+          cmake -S . -B build $GENERATOR $CMAKE_EXTRA ${launcher[@]+"${launcher[@]}"} \
+            -DCMAKE_BUILD_TYPE="$CMAKE_BUILD_TYPE" \
+            -DSNARAL_BUILD_PLUGIN=ON -DSNARAL_BUILD_CLAP=ON \
+            -DSNARAL_JUCE_DIR="$DEPS_DIR/JUCE" \
+            -DSNARAL_CLAP_EXT_DIR="$DEPS_DIR/clap-juce-extensions"
+
       - name: Build
-        run: cmake --build build --config Release --parallel 2
+        run: |
+          set -euo pipefail
+          export CCACHE_DIR="$HOME/.ccache" CCACHE_MAXSIZE=500M
+          cmake --build build --config "$CMAKE_BUILD_TYPE" --parallel 4
+          if command -v ccache >/dev/null; then ccache -s || true; fi
+
       - name: Test
-        run: ctest --test-dir build -C Release --output-on-failure
-      - name: Upload plugin build outputs
-        if: success()
+        if: matrix.run_tests
+        run: ctest --test-dir build -C "$CMAKE_BUILD_TYPE" --output-on-failure --timeout 120
+
+      - name: Package
+        run: tools/package.sh "$VERSION" "${{ matrix.os }}" "${{ matrix.arch }}" build dist
+
+      - name: Smoke check (artefacts present, signatures, architecture)
+        run: tools/smoke.sh "${{ matrix.os }}" "${{ matrix.arch }}" "dist/$PKG_NAME"
+
+      - name: pluginval on VST3 (Linux, advisory)
+        if: matrix.os == 'linux'
+        id: pluginval
+        continue-on-error: true
+        timeout-minutes: 15
+        run: tools/smoke.sh linux x64 "dist/$PKG_NAME" --pluginval pluginval.log
+
+      - name: Upload pluginval log
+        if: always() && matrix.os == 'linux'
         uses: actions/upload-artifact@v4
         with:
-          name: snaral-${{ runner.os }}-${{ runner.arch }}
-          path: |
-            build/Snaral_artefacts/Release/**
-            build/Snaral_artefacts/VST3/**
-            build/Snaral_artefacts/Standalone/**
+          name: pluginval-log-${{ matrix.os }}-${{ matrix.arch }}
+          path: pluginval.log
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Upload package
+        uses: actions/upload-artifact@v4
+        with:
+          name: pkg-${{ matrix.os }}-${{ matrix.arch }}
+          path: dist/${{ env.PKG_NAME }}.zip
           if-no-files-found: error
           retention-days: 14
 
-  publish-release:
-    name: Publish platform builds
-    if: startsWith(github.ref, 'refs/tags/')
-    needs: build
+  release:
+    name: Publish pre-release
+    needs: [meta, build]
+    if: needs.meta.outputs.publish == 'true'
     runs-on: ubuntu-24.04
+    timeout-minutes: 15
     permissions:
       contents: write
+    env:
+      VERSION: ${{ needs.meta.outputs.version }}
+      TAG: ${{ needs.meta.outputs.tag }}
     steps:
-      - name: Download successful platform builds
+      - uses: actions/checkout@v4
+
+      - name: Download platform packages
         uses: actions/download-artifact@v4
         with:
-          pattern: snaral-*
-          path: platform-builds
-          merge-multiple: false
+          pattern: pkg-*
+          path: packages
+          merge-multiple: true
 
-      - name: Package builds
-        shell: bash
-        run: |
-          set -euo pipefail
-          mkdir -p release-assets
-          for platform_dir in platform-builds/snaral-*; do
-            test -d "$platform_dir"
-            artifact_name="${platform_dir##*/}"
-            (cd "$platform_dir" && zip -qr "$GITHUB_WORKSPACE/release-assets/${artifact_name}.zip" . -x '*/.DS_Store')
-          done
-          for platform in Linux macOS Windows; do
-            if ! compgen -G "release-assets/snaral-${platform}-*.zip" > /dev/null; then
-              echo "Missing successful build package for ${platform}" >&2
-              exit 1
-            fi
-          done
+      - name: Checksums and release notes
+        run: tools/finalize_release.sh "$VERSION" "$TAG" packages release-assets
 
-      - name: Publish GitHub Release
+      - name: Create or update GitHub pre-release
         uses: softprops/action-gh-release@v2
         with:
-          name: Snaral ${{ github.ref_name }}
-          generate_release_notes: true
-          prerelease: ${{ contains(github.ref_name, '-') }}
+          tag_name: ${{ env.TAG }}
+          target_commitish: ${{ github.sha }}
+          name: Snaral ${{ env.TAG }}
+          body_path: release-assets/RELEASE_NOTES.md
+          prerelease: true
+          make_latest: false
           fail_on_unmatched_files: true
-          files: release-assets/*.zip
+          files: |
+            release-assets/snaral-*.zip
+            release-assets/SHA256SUMS.txt
