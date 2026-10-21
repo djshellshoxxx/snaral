@@ -31,7 +31,8 @@ public:
     float next() noexcept
     {
         current_ = target_ + coeff_ * (current_ - target_);
-        if (std::fabs (current_ - target_) < 1.0e-7f) current_ = target_;
+        // relative snap so large targets settle too (float resolution stalls otherwise)
+        if (std::fabs (current_ - target_) <= 1.0e-6f * (1.0f + std::fabs (target_))) current_ = target_;
         return current_;
     }
     float current() const noexcept { return current_; }
