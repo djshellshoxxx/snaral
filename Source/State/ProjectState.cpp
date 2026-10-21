@@ -633,7 +633,27 @@ DecodeResult decode (const void* data, int sizeInBytes)
         return r;
     }
     const auto* bytes = static_cast<const char*> (data);
-    // JUCE binary XML: 4-byte magic, 4-byte length, XML text. Guard the recursive parser first.
+    // JUCE binary XML: 4-byte magic, 4-byte XML length, XML text, and a trailing NUL.
+    // JUCE's getXmlFromBinary() clamps the declared length to the supplied buffer size. That
+    // makes a truncated buffer containing a syntactically complete XML prefix look valid, so
+    // validate the frame before passing it to the permissive JUCE helper.
+    constexpr int binaryXmlHeaderBytes = 8;
+    constexpr int binaryXmlTerminatorBytes = 1;
+    constexpr std::uint32_t binaryXmlMagic = 0x21324356;
+    if (sizeInBytes <= binaryXmlHeaderBytes + binaryXmlTerminatorBytes
+        || juce::ByteOrder::littleEndianInt (data) != binaryXmlMagic)
+    {
+        r.errors.push_back ({ "", "state is truncated or not a valid Snaral state blob" });
+        return r;
+    }
+    const auto declaredXmlBytes = juce::ByteOrder::littleEndianInt (bytes + 4);
+    const auto actualXmlBytes = static_cast<std::uint32_t> (sizeInBytes - binaryXmlHeaderBytes - binaryXmlTerminatorBytes);
+    if (declaredXmlBytes == 0 || declaredXmlBytes != actualXmlBytes || bytes[sizeInBytes - 1] != '\0')
+    {
+        r.errors.push_back ({ "", "state is truncated or has an invalid binary XML length" });
+        return r;
+    }
+    // Guard the recursive parser before invoking JUCE's XML parser.
     if (sizeInBytes > 8 && ! xmlNestingWithinLimit (bytes + 8, static_cast<std::size_t> (sizeInBytes - 8), 64))
     {
         r.errors.push_back ({ "", "state is nested too deeply" });

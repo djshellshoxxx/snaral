@@ -209,7 +209,8 @@ void testStrictRejection()
     // truncated blobs
     const auto blob = toBlob (goodTree());
     for (std::size_t n = 0; n + 1 < blob.getSize(); n += 97)
-        CHECK (! pj::decode (blob.getData(), static_cast<int> (n)).ok);
+        CHECK_MSG (! pj::decode (blob.getData(), static_cast<int> (n)).ok,
+                   "truncated blob accepted at " + std::to_string (n) + " of " + std::to_string (blob.getSize()));
     CHECK (! pj::decode (blob.getData(), static_cast<int> (blob.getSize()) - 1).ok);
 
     // size cap

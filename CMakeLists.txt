@@ -131,6 +131,7 @@ if(SNARAL_BUILD_PLUGIN)
         IS_MIDI_EFFECT FALSE
         EDITOR_WANTS_KEYBOARD_FOCUS TRUE
         VST3_CATEGORIES Instrument Synth
+        LV2URI "https://circuitdriftlabs.com/plugins/snaral"
         COPY_PLUGIN_AFTER_BUILD FALSE
         PRODUCT_NAME "Snaral")
 

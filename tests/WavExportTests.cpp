@@ -557,8 +557,9 @@ void testMidiLearnInRender()
     CHECK (eng2.midiEventsSeen == eng.midiEventsSeen + 2);
 }
 
-// Second-application interoperability: Python's stdlib `wave` (PCM) and scipy.io.wavfile (PCM + float) decode
-// files written by us and compare against the analytic signal. SKIPPED (loudly) when python3/scipy are absent.
+// Second-application interoperability: Python's stdlib `wave` (PCM) and a small stdlib RIFF reader
+// (IEEE float) decode files written by us and compare against the analytic signal. SciPy adds an
+// optional independent check for PCM when installed, but is not a test dependency.
 void testPythonInterop()
 {
     const char* script = R"PY(
@@ -567,6 +568,30 @@ path, kind, rate, ch, frames = sys.argv[1], sys.argv[2], int(sys.argv[3]), int(s
 def sig(i, c):
     return (0.5 if c == 0 else 0.25) * math.sin(2*math.pi*440.0*i/rate + 0.3*c)
 tol = {'p16': 2.0/32768, 'p24': 2.0/8388608, 'f32': 1e-6}[kind]
+if kind == 'f32':
+    import struct
+    raw = open(path, 'rb').read()
+    assert raw[:4] == b'RIFF' and raw[8:12] == b'WAVE', 'float: RIFF/WAVE signature'
+    pos, fmt, payload = 12, None, None
+    while pos + 8 <= len(raw):
+        name, size = struct.unpack_from('<4sI', raw, pos)
+        start = pos + 8
+        assert start + size <= len(raw), 'float: truncated RIFF chunk'
+        if name == b'fmt ': fmt = raw[start:start+size]
+        if name == b'data': payload = raw[start:start+size]
+        pos = start + size + (size & 1)
+    assert fmt is not None and len(fmt) >= 16, 'float: fmt chunk'
+    tag, channels, sample_rate, byte_rate, block_align, bits = struct.unpack_from('<HHIIHH', fmt)
+    assert tag == 3, 'float: IEEE format tag %d' % tag
+    assert channels == ch and sample_rate == rate and bits == 32, 'float: format fields'
+    assert block_align == ch * 4 and byte_rate == rate * block_align, 'float: alignment'
+    assert payload is not None and len(payload) == frames * ch * 4, 'float: data size'
+    for i in range(0, frames, 97):
+        for c in range(ch):
+            v = struct.unpack_from('<f', payload, (i*ch+c)*4)[0]
+            assert abs(v - sig(i, c)) <= tol, 'float: sample %d %d %f %f' % (i, c, v, sig(i, c))
+    print('ok stdlib float RIFF')
+    sys.exit(0)
 if kind != 'f32':
     with wave.open(path, 'rb') as w:
         assert w.getframerate() == rate, 'wave: rate'
@@ -585,7 +610,7 @@ try:
     import numpy as np
     from scipy.io import wavfile
 except ImportError:
-    print('scipy-missing'); sys.exit(0 if kind != 'f32' else 3)
+    print('scipy-missing; stdlib checks passed'); sys.exit(0)
 r, d = wavfile.read(path)
 assert r == rate, 'scipy: rate'
 d = d.reshape(frames, ch) if d.ndim == 1 else d
