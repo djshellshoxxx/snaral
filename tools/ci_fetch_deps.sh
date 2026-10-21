@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Clone JUCE and clap-juce-extensions into <deps-dir> (with retries) so that CMake can be
 # configured offline with -DSNARAL_JUCE_DIR / -DSNARAL_CLAP_EXT_DIR. A JUCE dir restored from the
-# CI cache is reused if it is already at the right tag.
+# CI cache is reused if it is already at the right tag / commit.
 # Usage: tools/ci_fetch_deps.sh <deps-dir>
 set -euo pipefail
 here="$(cd "$(dirname "$0")" && pwd)"
@@ -20,9 +20,20 @@ else
   retry 4 10 git clone --depth 1 --branch "$juce_tag" https://github.com/juce-framework/JUCE.git "$deps/JUCE"
 fi
 
-# clap-juce-extensions tracks main in CMakeLists.txt; it is small, so always fetch fresh.
-rm -rf "$deps/clap-juce-extensions"
-retry 4 10 git clone --depth 1 --recurse-submodules --shallow-submodules \
-  https://github.com/free-audio/clap-juce-extensions.git "$deps/clap-juce-extensions"
+# clap-juce-extensions is pinned to a commit in CMakeLists.txt (SNARAL_CLAP_EXT_COMMIT).
+clap_sha="$(sed -n 's/.*set(SNARAL_CLAP_EXT_COMMIT[[:space:]]\{1,\}\([0-9a-f]\{40\}\)).*/\1/p' "$here/../CMakeLists.txt" | head -n1)"
+clap_sha="${clap_sha:?could not read SNARAL_CLAP_EXT_COMMIT from CMakeLists.txt}"
+clap="$deps/clap-juce-extensions"
+if [[ "$(git -C "$clap" rev-parse HEAD 2>/dev/null || true)" == "$clap_sha" ]]; then
+  echo "clap-juce-extensions $clap_sha already present (cache hit)"
+else
+  rm -rf "$clap"
+  mkdir -p "$clap"
+  git -C "$clap" init -q
+  git -C "$clap" remote add origin https://github.com/free-audio/clap-juce-extensions.git
+  retry 4 10 git -C "$clap" fetch -q --depth 1 origin "$clap_sha"
+  git -C "$clap" checkout -q FETCH_HEAD
+  retry 4 10 git -C "$clap" submodule update --init --recursive --depth 1
+fi
 echo "clap-juce-extensions commit: $(git -C "$deps/clap-juce-extensions" rev-parse HEAD)"
 echo "JUCE ($juce_tag) commit: $(git -C "$deps/JUCE" rev-parse HEAD)"

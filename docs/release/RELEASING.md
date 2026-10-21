@@ -28,9 +28,19 @@ macOS bundles are ad-hoc signed only (`codesign --force --deep -s -`), not notar
    ```
 5. Watch the "Build, test and release" run. The `release` job only runs when every platform build succeeded.
 
+### CI layout (ci-speed)
+
+Jobs in `build.yml`: `meta` (version, LTO mode, platform matrix) then, in parallel, `unit-tests` (Linux, JUCE-free tests only, gates nothing), one `build` job per platform (all formats in a single `cmake --build`, JUCE-dependent tests where runnable, package, smoke check, upload) and `pluginval` (Linux, advisory, runs on the finished package). `release` needs `meta` and every `build` job only.
+
+- **LTO** (`SNARAL_ENABLE_LTO`): ON for tag and `publish` builds, OFF for PR / branch CI. A release is always built with LTO; the branch CI binaries are not byte-identical to the released ones.
+- **Unity builds** (`SNARAL_UNITY_BUILD`, batch of 8) apply to the Snaral plug-in target only, never to tests or JUCE modules.
+- **Caches:** ccache (sccache on Windows) via `hendrikmuhs/ccache-action`, keyed on runner + arch + LTO mode; JUCE and clap-juce-extensions checkouts cached keyed on `CMakeLists.txt`. clap-juce-extensions is pinned to a commit (`SNARAL_CLAP_EXT_COMMIT` in `CMakeLists.txt`); bump it there deliberately.
+- Windows now builds with Ninja + MSVC (`ilammy/msvc-dev-cmd`) instead of the Visual Studio generator; the first run on CI is unverified, so check the Windows job on the first push.
+- Per-format packaging jobs were not added: packaging is seconds, the compile is shared, so splitting would only add artifact transfers.
+
 ### Manual build without a tag
 
-Actions > "Build, test and release" > Run workflow. Enter `version` (e.g. `0.2.0-beta.2`, no leading `v`). Leave `publish` off to only get workflow artifacts (`pkg-*`, 14 days). Turn `publish` on to also create the pre-release `v<version>` from the selected commit. Versions without a `-suffix` are refused for publishing.
+Actions > "Build, test and release" > Run workflow. Enter `version` (e.g. `0.2.0-beta.2`, no leading `v`). `platforms` (default `all`, or a comma list such as `linux-x64,macos-arm64`; ids `windows-x64`, `macos-arm64`, `macos-x86_64`, `linux-x64`) builds a subset for fast single-platform retries; publishing requires `all`. Leave `publish` off to only get workflow artifacts (`pkg-*`, 14 days). Turn `publish` on to also create the pre-release `v<version>` from the selected commit. Versions without a `-suffix` are refused for publishing.
 
 ## Retagging a failed build
 
@@ -67,7 +77,7 @@ Expect `true`, the four zips and `SHA256SUMS.txt`. Then, per platform: unzip, ch
 - **Linux (Ubuntu 24.04):** `build-essential cmake ninja-build git ccache zip unzip curl xvfb libasound2-dev libjack-jackd2-dev libfreetype-dev libfontconfig1-dev libx11-dev libxcomposite-dev libxcursor-dev libxext-dev libxinerama-dev libxi-dev libxrandr-dev libxrender-dev libglu1-mesa-dev mesa-common-dev libegl1-mesa-dev`. This follows JUCE's "Linux Dependencies" doc; curl and WebKit are not needed (`JUCE_USE_CURL=0`, `JUCE_WEB_BROWSER=0`).
 - **macOS:** Xcode command line tools, CMake, Ninja, ccache (Homebrew). Deployment target 11.0 is set in `CMakeLists.txt`.
 - **Windows:** Visual Studio 2022 (MSVC, `-A x64`), CMake, 7-Zip (preinstalled on the runner).
-- JUCE (tag from `CMakeLists.txt`) and clap-juce-extensions (`main`, so CLAP builds are not byte-reproducible over time) are cloned by `tools/ci_fetch_deps.sh` and passed via `SNARAL_JUCE_DIR` / `SNARAL_CLAP_EXT_DIR`. JUCE is cached keyed on `CMakeLists.txt`.
+- JUCE (tag from `CMakeLists.txt`) and clap-juce-extensions (pinned commit) are cloned by `tools/ci_fetch_deps.sh` and passed via `SNARAL_JUCE_DIR` / `SNARAL_CLAP_EXT_DIR`. The checkouts are cached keyed on `CMakeLists.txt`.
 
 ## Local packaging
 
