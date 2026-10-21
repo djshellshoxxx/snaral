@@ -1,65 +1,71 @@
 # Feature Spec: Main and Advanced UI Layout
 
 **Module:** macros-ui  
-**Depends on:** parameter-state, host-integration, preset-variation
-**Shared standards:** [Audio Application Baseline](../../standards/AUDIO_APP_BASELINE.md), [GUI Standards](../../standards/GUI_STANDARDS.md), [Accessibility](../../standards/ACCESSIBILITY.md), [Theme and Options](cdl-theme-options.md)
+**Depends on:** parameter-state, host-integration, preset-variation, expansion-preset-browser, expansion-undo-ab, expansion-snarl-trajectory, expansion-oversampling  
+**Shared standards:** [Audio Application Baseline](../../standards/AUDIO_APP_BASELINE.md), [GUI Standards](../../standards/GUI_STANDARDS.md), [Accessibility](../../standards/ACCESSIBILITY.md), [Theme and Options](cdl-theme-options.md)  
+**Behaviour of controls:** [macros-ui](macros-ui.md)
 
 ## Objective
 
-Keep Snaral's five macro controls as the primary workflow while making CDL actions, preset management, performance controls, Options, help, and signal status discoverable at common plug-in sizes. This is the UI source spec for implementation; the shared standards remain the source of truth for tokens, shared actions, accessibility, and release requirements.
+Keep the five macros the primary workflow while making CDL actions, history and A/B, preset browsing, performance controls, effects, the Trajectory editor, oversampling, Options and status discoverable at common plug-in sizes. This is the placement source for implementation; shared standards own tokens, accessibility and release rules.
 
-## Window and visual frame
+## Window and frame
 
-- Default client size: 900 × 560 logical px. Minimum: 720 × 480. Maximum: 1440 × 900 unless host constraints require another bound.
-- Resizing reflows spacing and reveals content; it never scales control dimensions or text proportionally.
-- Main header: 32 px high, product name at left, Options at right, thin separator below, and version in muted 9 px monospace text at bottom-right.
-- Show the 2 px burnt-orange diagonal notch at the top-left as the CDL signature until an approved logo asset is provided. Do not draw an invented logo.
-- Use the exact default CDL theme tokens and typography from the shared baseline. Do not duplicate or redefine those token values here. All additional themes preserve the semantic meaning of active, warning, success, and error states.
-- Default controls follow shared sizes: knobs 48 px (small 36 px, large 64 px); buttons/toggles at least 28 px high; interactive hit target at least 32 × 32 logical px. Labels are approximately 11 px uppercase, numeric values 13–14 px, and high-DPI rendering must preserve readability.
+- Default 900 x 560 logical px, minimum 720 x 480, maximum 1440 x 900 unless the host bounds differ. Resizing reflows and reveals; it never scales controls or text.
+- Header 32 px: 2 px burnt-orange diagonal notch at top-left (CDL signature until an approved logo exists), product name, thin separator, version in muted 9 px monospace at bottom-right of the window.
+- Default CDL tokens and typography come from the shared baseline and are not redefined here. Knobs 48 px (small 36, large 64), buttons at least 28 px high, hit targets at least 32 x 32.
 
 ## Main view zones
 
-1. **Header:** product name, current preset selector, previous/next preset, modified indicator, Options, and Help.
-2. **Common action row:** Stop/Panic, Reset, Randomize, Bypass, Save Preset, A/B slots, and Export WAV. Each action has a tooltip and accessible name. Hide or disable only actions that are genuinely unavailable, with an explanation.
-3. **Macro area:** Weight, Growl, Bite, Motion, and Space with values, units where applicable, tooltips, reset/context menu, and host automation feedback.
-4. **Performance area:** voice mode, Legato, Glide, tempo sync/free status, rate/division, and four named A–D variations. Keep detailed parameters in Advanced.
-5. **Signal/status area:** post-limiter waveform/signal view, honest Snaral DSP CPU estimate, output activity/clipping, and host-tempo-unavailable status. The visualization and CPU gauge have Options switches. Do not present host-wide CPU as Snaral-only CPU.
-6. **Footer:** build/version text, help link, and non-color-only status cues.
+1. **Header:** preset selector with previous and next, Browser toggle, modified indicator, Help, Options.
+2. **Common action row:** Panic, Reset, Randomize (seed popover), Bypass, Undo, Redo, A, B, Copy A to B, Save, Export WAV. At 720 px Panic, Bypass, Undo, Redo, A and B stay visible; Reset, Randomize, Save and Export WAV move to a labeled "More" menu.
+3. **Macro area:** Weight, Growl, Bite, Motion, Space (large knobs). At 720 x 480 they may wrap 3 + 2.
+4. **Performance row:** voice mode, Legato, Glide, Sync/Free with rate or division, variations A to D, and a second Panic button.
+5. **Signal and status area:** post-limiter scope with Stereo, Sub and Mid view toggles, Snaral DSP CPU gauge with overrun marker, output peak and clip indicator, and a read-only quality readout such as "OS 2x, 64 smp". Scope and gauge hide independently from Options. Never label host-wide CPU as Snaral CPU.
+6. **Footer status line:** one line of text (priority list in macros-ui), help link, non-color-only status icons.
 
-At 720 × 480, place macro controls in a 3+2 arrangement if needed. The common action row may use compact labeled buttons or a labeled overflow menu, but Stop/Panic, preset selection, Options, and the five macros remain directly visible. Export WAV and less frequent actions may move into a clearly labeled menu.
+**Preset browser panel:** a 320 px slide-over from the right edge (at most half the window), opened from the header, closed with Escape or the toggle; it overlays rather than resizing the main view. Contents: search field, filter chips (layer balance, motion, texture, factory, user, favourite), sort menu, result list with favourite star, and Apply and Cancel for the audition state. Empty-result and invalid-file messages appear inside the list.
 
 ## Advanced workspace
 
-- Use tabs named Voice, Sub, Sources, Filter & Motion, Drive, Texture, and Output.
-- Each tab uses a scroll container. Scrolling must reach every control; scroll position is remembered per tab during the current session.
-- Use collapsible groups when a tab contains multiple related control groups; collapsed state remains visible and keyboard-operable.
-- A/B comparison and parameter context menus use shared snapshot and action semantics. A/B is distinguished from saved presets.
-- Value entry validates ranges, shows units, restores the prior value on Escape, and commits one host automation gesture on Enter.
-- Advanced controls must not resize the macro controls. Returning to Main preserves the prior workspace and scroll position.
+Eight tabs: Voice, Sub, Sources, Filter & Motion, Drive, Texture, Effects, Output. Each tab has its own scroll container; scroll position is remembered per tab for the session; collapsible groups are keyboard-operable and their collapsed state is a user preference. The Advanced header holds a compact layer control: Solo Sub, Solo Mid (mutually exclusive) and Mute Sub, Mute Mid, with a "SOLO SUB" style chip whenever one is active.
 
-## Options, help, and standalone-only controls
+| Tab | Registry groups and controls |
+|---|---|
+| Voice | `voice_mode`, `legato`, `glide_ms`, `pitch_bend_range`, `velocity_to_level`, `velocity_to_attack`, `master_tune_hz`, `transpose_semitones` |
+| Sub | `sub_waveform`, `sub_tune_cents`, `sub_level`, `sub_amp_*` ADSR; group **Sub Anchor**: `anchor_enabled`, `anchor_note`, `anchor_strength` with a readout of the gain at the last played note |
+| Sources | `mid_source_a`, `mid_source_b`, `mid_blend`, `mid_table_position`, `mid_pulse_width`, `mid_tune_cents`, `mid_level`, `mid_amp_*` ADSR |
+| Filter & Motion | groups **Filter** (`filter_*`), **Contour** (`contour_*`), **LFO** (`lfo_*`), **Snarl Trajectory** (enable, time mode, length or division, destination, depth, curve, loop, and the editor) |
+| Drive | `drive_type`, `drive_amount`, `drive_tone`, `drive_mix` |
+| Texture | `noise_level`, `noise_tone`, `metal_level`, `metal_decay_ms`, `metal_tune` |
+| Effects | groups **Formant Furnace** (`furnace_*`) then **Harmonic Fracture** (`fracture_*`), each with an enable switch, in signal order with a "mid only, before Drive" caption |
+| Output | `output_trim_db`, `limiter_enabled`, `limiter_ceiling_db`; group **Quality**: `oversampling_mode` selector (Off, 2x, 4x) with a live "Latency: N samples (x ms)" readout; engine diagnostics |
 
-- Options includes theme selection, tooltips on/off, global animation on/off, show/hide signal display, show/hide CPU gauge, and rerun onboarding.
-- In standalone mode only, include the supported audio/MIDI device configuration and the explicitly started/stopped 440 Hz reference tone. In plug-in mode, identify audio-device settings as host-controlled and do not expose ineffective controls.
-- Help is local and synchronized with shipped controls, parameter names, units, ranges, and supported formats. The CDL website opens only after the user activates its link.
-- Onboarding is skippable, repeatable from Options, and uses a disposable state that restores the user's current patch when closed or skipped.
+`bypass`, `layer_solo`, `sub_mute`, `mid_mute` are controlled from the action row and the Advanced header. The five macros are on the Main view. Every non-hidden registry parameter has exactly one primary control; duplicates (performance row) bind to the same parameter.
 
-## Interaction, accessibility, and state
+**Trajectory editor panel (inside Filter & Motion):** minimum 360 x 160 px canvas, five points; point 1 is fixed at time 0 and point 5 at time 1; points 2 to 4 move horizontally (`traj_x2..x4`) and all five vertically (`traj_y1..y5`). A dragged point cannot cross its neighbours (minimum gap 0.02) and values stay in [0,1]. Each point is keyboard focusable (arrow 1%, Shift+arrow 10%) with the accessible name "Point N, time T percent, depth D percent". A drag is one gesture and one undo step. A read-only playhead is drawn only when animation is enabled. The panel greys out (not hides) when `traj_enabled` is off.
 
-- All controls provide keyboard focus, a visible focus indicator, semantic/accessibility names where JUCE supports them, and traversal order matching visual grouping.
-- Do not rely on color alone for active, warning, clip, selected, or error status. Respect reduced animation settings.
-- Right-click actions follow the shared parameter context menu: copy, validated paste, numerical entry, MIDI learn, unlink mapping, and reset to default when relevant.
-- Preserve the current preset on cancel, invalid import, or failed save. Dirty state changes promptly after sound-affecting edits and clears only after successful save/load.
-- Preset browsing, help, theme changes, and UI animation never block the audio callback or modify sound state unless the user explicitly requests a sound action.
+## Options, help, standalone
+
+- Options: theme, tooltips, animation, show or hide signal view and CPU gauge, rerun onboarding, MIDI mappings list (target, CC, channel, min, max, invert, remove, clear all), and in standalone only the audio and MIDI device setup and the 440 Hz reference tone. In plug-ins audio settings are labelled host-controlled.
+- Help is local and generated from the registry so parameter names, units and ranges match. The CDL website opens only on user activation.
+
+## Interaction, accessibility, state
+
+- Every control has keyboard focus, a visible focus indicator, an accessible name, and traversal order matching the visual grouping. State is never colour-only; reduced animation is honoured.
+- Value entry validates range, shows units, restores on Escape, and commits one gesture on Enter.
+- Right-click menu: copy, validated paste, numeric entry, MIDI Learn, unlink, reset.
+- Preset browsing, help, themes and animation never block audio or change sound state unless the user requests a sound action. Cancel, failed import and failed save preserve the current patch.
 
 ## Acceptance criteria
 
-1. Screenshots at 720 × 480, 900 × 560, and 1280 × 720 show no clipping, overlap, or inaccessible controls.
-2. At 150% and 200% display scaling, labels, values, buttons, focus indicators, and dialogs remain readable and operable.
-3. Every Advanced tab scrolls to its final control and returns to the top; collapsed sections are discoverable and keyboard-operable.
-4. The default CDL theme token values match the shared baseline exactly; no placeholder accent colors remain in the production theme.
-5. Every shared action is exposed in the specified location or a clearly labeled menu, with unavailable states explained.
-6. Keyboard traversal, tooltips, context actions, accessible names, and reduced-animation behavior pass manual review and UI automation.
-7. Unsaved edits survive canceled navigation, failed import, and canceled export without changing preset or host state.
-8. Plug-in Options do not claim control of host-owned devices; standalone device loss and recovery are tested.
-9. Signal view and CPU estimate can be hidden independently; their values are based on documented measurement points and ballistics.
+1. Screenshots at 720 x 480, 900 x 560 and 1280 x 720 (every theme) show no clipping, overlap or unreachable control, with the browser panel open and closed.
+2. At 150% and 200% scaling labels, values, focus rings and dialogs stay readable and operable.
+3. Every Advanced tab scrolls to its last control and back; collapsed groups work by keyboard.
+4. A UI-to-registry test walks `parameterTable` and fails if any non-utility parameter has no control, or two primary controls (see [audit-checklist](audit-checklist.md)).
+5. Effects tab, Trajectory panel, Quality selector, Anchor group, Undo/Redo/A/B and Panic exist at the stated locations; the 720 x 480 compact action row exposes Panic, Bypass, Undo, Redo, A, B.
+6. Trajectory points cannot cross, exports match parameter values, and keyboard editing works.
+7. Default CDL theme tokens match the baseline exactly; no placeholder accents remain.
+8. Plug-in Options do not claim host-owned device control; standalone device loss and recovery are tested.
+9. Signal view and CPU gauge hide independently; values use documented measurement points.
+10. Edits survive canceled navigation, failed import and canceled export unchanged.

@@ -3,6 +3,8 @@
 **Purpose:** Prioritized post-release product ideas
 **Current product contract:** [Initial Developer Specification](SNARAL_INITIAL_DEVELOPER_SPEC.md) and [Feature Specification Index](SNARAL_FEATURE_SPEC_INDEX.md)
 
+**Status update:** several ideas below were promoted into the v0.2 beta (preset browser, undo/redo history, Snarl Trajectory, Sub Anchor, AU/CLAP format expansion, oversampling, Formant Furnace, Harmonic Fracture, a larger factory library). The [Expansion Roadmap](SNARAL_EXPANSION_ROADMAP.md) marks each item BETA or POST-BETA and links its full spec. The candidate descriptions below are the original proposals and are superseded by those specs where they differ (for example Snarl Trajectory has five fixed points, and the Gesture performance mapping idea is excluded and has no spec).
+
 Core requirements, including the CDL audio-app baseline, are tracked in the [initial developer specification](SNARAL_INITIAL_DEVELOPER_SPEC.md) and [compliance map](SNARAL_SHARED_CDL_COMPLIANCE.md). The ideas below are post-release proposals. Select them only after the core sound, state, host, and CDL gates pass.
 
 ## Five features to improve usability
