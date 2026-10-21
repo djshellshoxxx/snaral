@@ -1,0 +1,18 @@
+// Snarl Trajectory editor (musical feature). Owner: trajectory worker. Append-only.
+// Five-point body > peak > return curve; point 1 x=0 and point 5 x=1 are fixed.
+SNARAL_BOOL   (traj_enabled, "Trajectory On", "Trajectory", false, pfNone)
+SNARAL_CHOICE (traj_time_mode, "Traj Time", "Trajectory", 0, pfNone, "ms", "sync")
+SNARAL_FLOAT  (traj_length_ms, "Traj Length", "Trajectory", 50.0f, 4000.0f, 600.0f, "ms", Log, pfNone)
+SNARAL_CHOICE (traj_length_div, "Traj Division", "Trajectory", 3, pfNone, "1/16", "1/8", "1/4", "1/2", "1/1", "2/1")
+SNARAL_CHOICE (traj_dest, "Traj Dest", "Trajectory", 0, pfNone, "cutoff", "source_position", "both")
+SNARAL_FLOAT  (traj_depth, "Traj Depth", "Trajectory", 0.0f, 100.0f, 70.0f, "%", Linear, pfNone)
+SNARAL_FLOAT  (traj_curve, "Traj Curve", "Trajectory", 0.0f, 100.0f, 50.0f, "%", Linear, pfNone)
+SNARAL_BOOL   (traj_loop, "Traj Loop", "Trajectory", false, pfNone)
+SNARAL_FLOAT  (traj_x2, "Traj X2", "Trajectory", 0.0f, 1.0f, 0.15f, "", Linear, pfNoAutomation)
+SNARAL_FLOAT  (traj_x3, "Traj X3", "Trajectory", 0.0f, 1.0f, 0.40f, "", Linear, pfNoAutomation)
+SNARAL_FLOAT  (traj_x4, "Traj X4", "Trajectory", 0.0f, 1.0f, 0.70f, "", Linear, pfNoAutomation)
+SNARAL_FLOAT  (traj_y1, "Traj Y1", "Trajectory", 0.0f, 1.0f, 0.20f, "", Linear, pfNoAutomation)
+SNARAL_FLOAT  (traj_y2, "Traj Y2", "Trajectory", 0.0f, 1.0f, 0.90f, "", Linear, pfNoAutomation)
+SNARAL_FLOAT  (traj_y3, "Traj Y3", "Trajectory", 0.0f, 1.0f, 0.50f, "", Linear, pfNoAutomation)
+SNARAL_FLOAT  (traj_y4, "Traj Y4", "Trajectory", 0.0f, 1.0f, 0.30f, "", Linear, pfNoAutomation)
+SNARAL_FLOAT  (traj_y5, "Traj Y5", "Trajectory", 0.0f, 1.0f, 0.20f, "", Linear, pfNoAutomation)

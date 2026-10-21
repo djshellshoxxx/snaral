@@ -1,0 +1,7 @@
+SNARAL_CHOICE (sub_waveform, "Sub Wave", "Sub", 0, pfNone, "sine", "triangle")
+SNARAL_FLOAT  (sub_tune_cents, "Sub Tune", "Sub", -50.0f, 50.0f, 0.0f, "ct", Linear, pfNone)
+SNARAL_FLOAT  (sub_level, "Sub Level", "Sub", 0.0f, 100.0f, 100.0f, "%", Linear, pfNone)
+SNARAL_FLOAT  (sub_amp_attack_ms, "Sub Attack", "Sub", 0.0f, 500.0f, 2.0f, "ms", Linear, pfNone)
+SNARAL_FLOAT  (sub_amp_decay_ms, "Sub Decay", "Sub", 1.0f, 5000.0f, 300.0f, "ms", Linear, pfNone)
+SNARAL_FLOAT  (sub_amp_sustain, "Sub Sustain", "Sub", 0.0f, 100.0f, 100.0f, "%", Linear, pfNone)
+SNARAL_FLOAT  (sub_amp_release_ms, "Sub Release", "Sub", 1.0f, 5000.0f, 120.0f, "ms", Linear, pfNone)

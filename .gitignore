@@ -1,0 +1,8 @@
+build*/
+cmake-build-*/
+.vs/
+.idea/
+*.user
+.DS_Store
+release-assets/
+platform-builds/

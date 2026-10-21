@@ -1,0 +1,4 @@
+// Sub Anchor range compensation. Owner: engine-core worker. Append-only.
+SNARAL_BOOL   (anchor_enabled, "Anchor On", "Sub", false, pfNone)
+SNARAL_FLOAT  (anchor_note, "Anchor Note", "Sub", 24.0f, 60.0f, 36.0f, "note", Linear, pfInteger)
+SNARAL_FLOAT  (anchor_strength, "Anchor Strength", "Sub", 0.0f, 100.0f, 50.0f, "%", Linear, pfNone)

@@ -1,0 +1,8 @@
+// Formant Furnace effect (mid-only). Owner: furnace worker. Append-only.
+SNARAL_BOOL   (furnace_enabled, "Furnace On", "Furnace", false, pfNone)
+SNARAL_FLOAT  (furnace_vowel, "Vowel", "Furnace", 0.0f, 100.0f, 25.0f, "%", Linear, pfNone)
+SNARAL_FLOAT  (furnace_spacing, "Peak Spacing", "Furnace", 0.0f, 100.0f, 50.0f, "%", Linear, pfNone)
+SNARAL_FLOAT  (furnace_resonance, "Furnace Reso", "Furnace", 0.0f, 100.0f, 40.0f, "%", Linear, pfNone)
+SNARAL_FLOAT  (furnace_env_amount, "Furnace Env", "Furnace", 0.0f, 100.0f, 0.0f, "%", Linear, pfNone)
+SNARAL_FLOAT  (furnace_lfo_amount, "Furnace LFO", "Furnace", 0.0f, 100.0f, 0.0f, "%", Linear, pfNone)
+SNARAL_FLOAT  (furnace_mix, "Furnace Mix", "Furnace", 0.0f, 100.0f, 50.0f, "%", Linear, pfNone)

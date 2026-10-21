@@ -1,0 +1,18 @@
+SNARAL_FLOAT  (filter_cutoff_hz, "Cutoff", "Filter", 20.0f, 20000.0f, 1200.0f, "Hz", Log, pfNone)
+SNARAL_FLOAT  (filter_resonance, "Resonance", "Filter", 0.0f, 80.0f, 20.0f, "%", Linear, pfNone)
+SNARAL_CHOICE (filter_type, "Filter Type", "Filter", 0, pfNone, "lowpass", "bandpass")
+SNARAL_FLOAT  (contour_attack_ms, "Contour Attack", "Motion", 0.0f, 500.0f, 5.0f, "ms", Linear, pfNone)
+SNARAL_FLOAT  (contour_decay_ms, "Contour Decay", "Motion", 5.0f, 3000.0f, 300.0f, "ms", Linear, pfNone)
+SNARAL_FLOAT  (contour_sustain, "Contour Sustain", "Motion", 0.0f, 100.0f, 30.0f, "%", Linear, pfNone)
+SNARAL_FLOAT  (contour_release_ms, "Contour Release", "Motion", 5.0f, 5000.0f, 200.0f, "ms", Linear, pfNone)
+SNARAL_CHOICE (contour_shape, "Contour Shape", "Motion", 0, pfNone, "linear", "ease_in", "ease_out")
+SNARAL_FLOAT  (contour_depth, "Contour Depth", "Motion", 0.0f, 100.0f, 50.0f, "%", Linear, pfNone)
+SNARAL_CHOICE (lfo_mode, "LFO Mode", "Motion", 0, pfNone, "free", "sync")
+SNARAL_FLOAT  (lfo_rate_hz, "LFO Rate", "Motion", 0.02f, 20.0f, 2.0f, "Hz", Log, pfNone)
+SNARAL_CHOICE (lfo_sync_division, "LFO Division", "Motion", 6, pfNone,
+               "1/1", "1/1d", "1/1t", "1/2", "1/2d", "1/2t", "1/4", "1/4d", "1/4t",
+               "1/8", "1/8d", "1/8t", "1/16", "1/16d", "1/16t", "1/32", "1/32d", "1/32t")
+SNARAL_CHOICE (lfo_waveform, "LFO Wave", "Motion", 0, pfNone, "sine", "triangle", "saw", "pulse")
+SNARAL_BOOL   (lfo_retrigger, "LFO Retrigger", "Motion", true, pfNone)
+SNARAL_FLOAT  (lfo_phase, "LFO Phase", "Motion", 0.0f, 360.0f, 0.0f, "deg", Linear, pfNone)
+SNARAL_FLOAT  (lfo_depth, "LFO Depth", "Motion", 0.0f, 100.0f, 50.0f, "%", Linear, pfNone)

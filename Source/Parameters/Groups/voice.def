@@ -1,0 +1,8 @@
+SNARAL_CHOICE (voice_mode, "Voice Mode", "Voice", 0, pfNone, "mono", "poly")
+SNARAL_BOOL   (legato, "Legato", "Voice", false, pfNone)
+SNARAL_FLOAT  (glide_ms, "Glide", "Voice", 0.0f, 500.0f, 0.0f, "ms", Linear, pfNone)
+SNARAL_FLOAT  (pitch_bend_range, "Bend Range", "Voice", 1.0f, 12.0f, 2.0f, "st", Linear, pfInteger)
+SNARAL_FLOAT  (velocity_to_level, "Vel > Level", "Voice", 0.0f, 100.0f, 0.0f, "%", Linear, pfNone)
+SNARAL_FLOAT  (velocity_to_attack, "Vel > Attack", "Voice", 0.0f, 100.0f, 0.0f, "%", Linear, pfNone)
+SNARAL_FLOAT  (master_tune_hz, "Tune A4", "Voice", 430.0f, 450.0f, 440.0f, "Hz", Linear, pfNone)
+SNARAL_FLOAT  (transpose_semitones, "Transpose", "Voice", -24.0f, 24.0f, 0.0f, "st", Linear, pfInteger)

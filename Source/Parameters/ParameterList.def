@@ -1,0 +1,16 @@
+// Master parameter list. NOT include-guarded: it is expanded several times by ParameterTable.h.
+// Order is the permanent serialization/index order. APPEND ONLY within a group; never reuse an ID.
+// Each group file is owned by the feature that defines it (see docs/IMPLEMENTATION_PLAN.md).
+#include "Groups/macros.def"
+#include "Groups/voice.def"
+#include "Groups/sub.def"
+#include "Groups/mid.def"
+#include "Groups/filter_motion.def"
+#include "Groups/drive_texture.def"
+#include "Groups/output.def"
+#include "Groups/utility.def"
+#include "Groups/fx_furnace.def"
+#include "Groups/fx_fracture.def"
+#include "Groups/trajectory.def"
+#include "Groups/quality.def"
+#include "Groups/sub_anchor.def"

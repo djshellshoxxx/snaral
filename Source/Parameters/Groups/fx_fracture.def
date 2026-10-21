@@ -1,0 +1,10 @@
+// Harmonic Fracture effect (mid-only multiband waveshaper). Owner: fracture worker. Append-only.
+SNARAL_BOOL   (fracture_enabled, "Fracture On", "Fracture", false, pfNone)
+SNARAL_FLOAT  (fracture_crossover_hz, "Crossover", "Fracture", 120.0f, 3000.0f, 500.0f, "Hz", Log, pfNone)
+SNARAL_FLOAT  (fracture_drive_low, "Low Drive", "Fracture", 0.0f, 100.0f, 25.0f, "%", Linear, pfNone)
+SNARAL_FLOAT  (fracture_drive_mid, "Mid Drive", "Fracture", 0.0f, 100.0f, 35.0f, "%", Linear, pfNone)
+SNARAL_FLOAT  (fracture_drive_high, "High Drive", "Fracture", 0.0f, 100.0f, 45.0f, "%", Linear, pfNone)
+SNARAL_FLOAT  (fracture_symmetry, "Fold Symmetry", "Fracture", 0.0f, 100.0f, 50.0f, "%", Linear, pfNone)
+SNARAL_FLOAT  (fracture_band_mix, "Band Tilt", "Fracture", 0.0f, 100.0f, 50.0f, "%", Linear, pfNone)
+SNARAL_FLOAT  (fracture_comp_db, "Fracture Comp", "Fracture", -12.0f, 6.0f, 0.0f, "dB", Linear, pfNone)
+SNARAL_FLOAT  (fracture_mix, "Fracture Mix", "Fracture", 0.0f, 100.0f, 50.0f, "%", Linear, pfNone)

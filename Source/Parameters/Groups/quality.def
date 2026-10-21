@@ -1,0 +1,2 @@
+// Nonlinear oversampling (value feature). Owner: oversampling worker. Append-only.
+SNARAL_CHOICE (oversampling_mode, "Oversampling", "Quality", 0, pfNone, "off", "x2", "x4")

@@ -1,0 +1,5 @@
+// Utility state: persisted in project state, excluded from preset JSON (pfNoPreset).
+SNARAL_BOOL   (bypass, "Bypass", "Utility", false, pfNoPreset)
+SNARAL_CHOICE (layer_solo, "Layer Solo", "Utility", 0, pfNoPreset, "off", "sub", "mid")
+SNARAL_BOOL   (sub_mute, "Sub Mute", "Utility", false, pfNoPreset)
+SNARAL_BOOL   (mid_mute, "Mid Mute", "Utility", false, pfNoPreset)

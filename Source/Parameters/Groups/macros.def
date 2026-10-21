@@ -1,0 +1,5 @@
+SNARAL_FLOAT (weight, "Weight", "Macros", 0.0f, 100.0f, 75.0f, "%", Linear, pfNone)
+SNARAL_FLOAT (growl,  "Growl",  "Macros", 0.0f, 100.0f, 65.0f, "%", Linear, pfNone)
+SNARAL_FLOAT (bite,   "Bite",   "Macros", 0.0f, 100.0f, 20.0f, "%", Linear, pfNone)
+SNARAL_FLOAT (motion, "Motion", "Macros", 0.0f, 100.0f, 0.0f,  "%", Linear, pfNone)
+SNARAL_FLOAT (space,  "Space",  "Macros", 0.0f, 100.0f, 0.0f,  "%", Linear, pfNone)
