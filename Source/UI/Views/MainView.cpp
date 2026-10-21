@@ -198,9 +198,9 @@ MainView::MainView (EditorController& controller, ControlRegistry& reg, Diagnost
     oversampling = std::make_unique<ParamCombo> (apvts, "oversampling_mode");
     legato = std::make_unique<ParamToggle> (apvts, "legato");
     glide = std::make_unique<ParamSlider> (apvts, "glide_ms", 56);
-    lfoRate = std::make_unique<ParamSlider> (apvts, "lfo_rate_hz", 68);
-    trim = std::make_unique<ParamSlider> (apvts, "output_trim_db", 56);
-    ceiling = std::make_unique<ParamSlider> (apvts, "limiter_ceiling_db", 56);
+    lfoRate = std::make_unique<ParamSlider> (apvts, "lfo_rate_hz", 72);
+    trim = std::make_unique<ParamSlider> (apvts, "output_trim_db", 92);
+    ceiling = std::make_unique<ParamSlider> (apvts, "limiter_ceiling_db", 92);
     registerSecondary ("voice_mode", *voiceMode);
     registerSecondary ("lfo_mode", *lfoMode);
     registerSecondary ("lfo_sync_division", *lfoDivision);
@@ -420,7 +420,7 @@ void MainView::layoutActionRow (juce::Rectangle<int> row)
         { &resetBtn, widthOf (resetBtn), true },
         { &randomBtn, widthOf (randomBtn), true },
         { &seedBtn, 96, true },
-        { &bypassBtn, widthOf (bypassBtn), false },
+        { &bypassBtn, widthOf (bypassBtn) + 26, false },
         { &undoBtn, widthOf (undoBtn), false },
         { &redoBtn, widthOf (redoBtn), false },
         { &abA, 40, false },
@@ -521,10 +521,10 @@ void MainView::resized()
         std::vector<Cell> cells = {
             { voiceMode.get(), voiceMode->getPreferredWidth(), ParamCombo::preferredHeight },
             { legato.get(), legato->getPreferredWidth() + 8, metrics::buttonHeight },
-            { glide.get(), 200, ParamSlider::preferredHeight },
+            { glide.get(), 270, ParamSlider::preferredHeight },
             { lfoMode.get(), lfoMode->getPreferredWidth(), ParamCombo::preferredHeight },
             { sync ? static_cast<juce::Component*> (lfoDivision.get()) : static_cast<juce::Component*> (lfoRate.get()),
-              sync ? lfoDivision->getPreferredWidth() : 200, sync ? ParamCombo::preferredHeight : ParamSlider::preferredHeight },
+              sync ? lfoDivision->getPreferredWidth() : 270, sync ? ParamCombo::preferredHeight : ParamSlider::preferredHeight },
             { oversampling.get(), oversampling->getPreferredWidth(), ParamCombo::preferredHeight },
         };
         const int gap = 12;
@@ -590,7 +590,7 @@ void MainView::resized()
     trim->setBounds (outputs.removeFromTop (ParamSlider::preferredHeight));
     outputs.removeFromTop (6);
     ceiling->setBounds (outputs);
-    auto strip = sig.removeFromRight (cpu.isVisible() || true ? 60 : 0);
+    auto strip = sig.removeFromRight (78);
     sig.removeFromRight (8);
     if (cpu.isVisible())
     {

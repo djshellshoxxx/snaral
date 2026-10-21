@@ -573,9 +573,11 @@ void SnaralLookAndFeel::drawLinearSlider (juce::Graphics& g, int x, int y, int w
                                               static_cast<float> (w), static_cast<float> (h));
     const auto centre = area.getCentre();
 
-    juce::Rectangle<float> track = horizontal ? juce::Rectangle<float> (minPos, centre.y - 2.0f, maxPos - minPos, 4.0f)
-                                               : juce::Rectangle<float> (centre.x - 2.0f, maxPos, 4.0f, minPos - maxPos);
-    g.setColour (t.outline.withMultipliedAlpha (alpha));
+    // minPos / maxPos are the two-value thumb positions in JUCE, not the range ends: use the full travel instead.
+    juce::ignoreUnused (minPos, maxPos);
+    juce::Rectangle<float> track = horizontal ? juce::Rectangle<float> (area.getX() + 8.0f, centre.y - 2.0f, juce::jmax (1.0f, area.getWidth() - 16.0f), 4.0f)
+                                               : juce::Rectangle<float> (centre.x - 2.0f, area.getY() + 8.0f, 4.0f, juce::jmax (1.0f, area.getHeight() - 16.0f));
+    g.setColour (t.textMuted.withAlpha (0.45f).withMultipliedAlpha (alpha));   // visible track (non-text contrast), not just the thumb
     g.fillRoundedRectangle (track, 2.0f);
 
     juce::Rectangle<float> fill = horizontal ? track.withRight (sliderPos) : track.withTop (sliderPos);

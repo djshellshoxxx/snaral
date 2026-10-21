@@ -22,9 +22,21 @@ void pump (int ms)
         juce::MessageManager::getInstance()->runDispatchLoopUntil (10);
 }
 
+SnaralAudioProcessor* liveProc = nullptr;
+SnaralAudioProcessorEditor* liveEditor = nullptr;
+void sound (SnaralAudioProcessor& p, int blocks);
+
 void save (juce::Component& c, const juce::String& name)
 {
     pump (60);
+    if (liveProc != nullptr && liveEditor != nullptr)
+        for (int i = 0; i < 8; ++i)   // no peer, so the display timers are idle: step them by hand with live audio behind them
+        {
+            sound (*liveProc, 2);
+            liveEditor->mainView().getScope().refreshNow();
+            liveEditor->mainView().getMeter().refreshNow();
+            liveEditor->mainView().getCpu().refreshNow();
+        }
     auto img = c.createComponentSnapshot (c.getLocalBounds(), true, 1.0f);
     auto file = outDir.getChildFile (name + ".png");
     file.deleteFile();
@@ -66,6 +78,8 @@ int main (int argc, char** argv)
     cfg.autoStartTour = false;
     SnaralAudioProcessorEditor ed (proc, cfg);
     ed.options().setUiScale (1.0f);
+    liveProc = &proc;
+    liveEditor = &ed;
     sound (proc, 80);
 
     const struct { int w, h; } sizes[] = { { 720, 480 }, { 900, 560 }, { 1440, 900 } };

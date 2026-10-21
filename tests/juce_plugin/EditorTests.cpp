@@ -242,6 +242,12 @@ static void testActionsAndOverlays()
     CHECK (ctl.seedHex().isNotEmpty());
     const auto afterRandom = ctl.snapshot();
     CHECK (before.v != afterRandom.v);
+    for (int i = 0; i < 5; ++i)
+    {
+        const auto txt = ed.mainView().macro (i).getReadoutText();
+        std::fprintf (stderr, "macro readout: %s\n", txt.toRawUTF8());
+        CHECK (txt.length() <= 5);   // e.g. "86%", never "85.8071%"
+    }
     ctl.resetPatch();
     pump (30);
     ctl.reproduceRandomize();
