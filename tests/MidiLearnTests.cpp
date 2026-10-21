@@ -327,7 +327,8 @@ void testPublisherAndStorm()
     long applied = 0;
     for (int i = 0; i < 300000; ++i)
     {
-        const auto* t = pub.current();
+        TablePublisher::ReadGuard guard (pub); // BUG-001: the unguarded current() read raced with publish() under load
+        const auto* t = guard.table;
         const int cc = rng.below (128), ch = 1 + rng.below (16), v = rng.below (128);
         const auto a = rt.apply (*t, cc, ch, v);
         if (a.mapped)
