@@ -168,4 +168,19 @@ if(SNARAL_BUILD_PLUGIN)
             juce::juce_audio_utils juce::juce_dsp juce::juce_recommended_config_flags)
         add_test(NAME snaral_juce_${test_target} COMMAND snaral_juce_${test_target})
     endforeach()
+
+    # >>> BEGIN engine-integration: processor-level tests link the plugin's shared code (tests/juce_plugin/*Tests.cpp) >>>
+    file(GLOB SNARAL_PLUGIN_TEST_SOURCES CONFIGURE_DEPENDS tests/juce_plugin/*Tests.cpp)
+    foreach(test_src ${SNARAL_PLUGIN_TEST_SOURCES})
+        get_filename_component(test_name ${test_src} NAME_WE)
+        string(TOLOWER ${test_name} test_target)
+        add_executable(snaral_plugin_${test_target} ${test_src})
+        target_include_directories(snaral_plugin_${test_target} PRIVATE Source tests "${CMAKE_BINARY_DIR}/Snaral_artefacts/JuceLibraryCode")
+        target_link_libraries(snaral_plugin_${test_target} PRIVATE Snaral)
+        target_include_directories(snaral_plugin_${test_target} PRIVATE "${SNARAL_JUCE_DIR}/modules")
+        target_compile_definitions(snaral_plugin_${test_target} PRIVATE
+            $<TARGET_PROPERTY:Snaral,COMPILE_DEFINITIONS> $<TARGET_PROPERTY:Snaral,INTERFACE_COMPILE_DEFINITIONS>)
+        add_test(NAME snaral_plugin_${test_target} COMMAND snaral_plugin_${test_target})
+    endforeach()
+    # <<< END engine-integration <<<
 endif()
