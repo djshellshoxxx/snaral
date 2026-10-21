@@ -6,3 +6,4 @@ cmake-build-*/
 .DS_Store
 release-assets/
 platform-builds/
+.claude/
