@@ -79,3 +79,15 @@ Add the listed envelope, tuning, transpose, sustain, panic, solo, and mute contr
 ## Implementation boundary
 
 These are release-scope additions. Do not add MIDI CC learn, undo/redo, preset search, or generated randomization in this feature. Those are usability candidates in the opportunity document.
+
+## Engine decisions (engine-voice, authoritative for implementation)
+
+**ADSR trajectory** (`Source/Dsp/Adsr.h`, sample counts `N = max(1, round(ms * sr / 1000))`, all stages linear in amplitude):
+- Attack: `out[i] = s0 + (1 - s0) * (i + 1) / Na`, `s0` = current level at note-on (0 when idle). Reuse/retrigger therefore never drops or clicks; the peak 1.0 is output at index `Na - 1`. Attack 0 ms gives a 1-sample attack (first sample 1.0). `noteOn(attackScale)` multiplies attack time (velocity hook).
+- Decay: `out[k] = 1 + (S - 1) * k / Nd`, `k = 1..Nd`, taking the full decay time regardless of sustain depth, ending exactly at `S`.
+- Sustain: holds `S`; a sustain change while held slews at 1/(5 ms) full scale.
+- Release: `out[k] = r0 * (1 - k / Nr)` from the level at note-off (any stage), exactly 0 at `k = Nr`, then Idle. Release length is always `release_ms`, latched at note-off. Therefore silence is reached within release + one render block (tested for blocks 1..1024).
+- Note-off while Idle/Release is ignored. `forceRelease(n)` releases over n samples (de-click kill); `kill()` is a hard zero.
+- Tests assert the exact trajectory (tighter than the "within one sample" criterion).
+
+**Sustain / panic / tuning** behaviour is specified in the "Engine decisions" section of midi-voice.md. Master tune and transpose apply before layer cents; changing them does not touch envelope state (they only feed the pitch chain).
