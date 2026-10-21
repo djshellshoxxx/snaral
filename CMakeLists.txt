@@ -76,6 +76,10 @@ endforeach()
 
 option(SNARAL_BUILD_PLUGIN "Build plugin and standalone targets" ON)
 option(SNARAL_BUILD_CLAP "Also build a CLAP plugin" ON)
+# ci-speed: build-speed options. LTO and unity are switchable so PR/branch CI and local dev builds can skip the slow parts.
+option(SNARAL_ENABLE_LTO "Link-time optimisation for the plugin (juce_recommended_lto_flags); ON for release builds" ON)
+option(SNARAL_UNITY_BUILD "Batch Source/*.cpp into unity files for the plugin target (not tests, not JUCE modules)" ON)
+set(SNARAL_UNITY_BATCH_SIZE 8 CACHE STRING "Files per unity batch")
 set(SNARAL_JUCE_DIR "" CACHE PATH "Use a local JUCE checkout instead of fetching")
 set(SNARAL_CLAP_EXT_DIR "" CACHE PATH "Use a local clap-juce-extensions checkout instead of fetching")
 
@@ -95,10 +99,12 @@ if(SNARAL_BUILD_PLUGIN)
         if(SNARAL_CLAP_EXT_DIR)
             add_subdirectory(${SNARAL_CLAP_EXT_DIR} clap-juce-extensions EXCLUDE_FROM_ALL)
         else()
+            # ci-speed: pinned to a commit (was GIT_TAG main). tools/ci_fetch_deps.sh reads SNARAL_CLAP_EXT_COMMIT below.
+            set(SNARAL_CLAP_EXT_COMMIT 7adee3a1bd4684d4caa5601100e364abccff4b4d)
             FetchContent_Declare(clap-juce-extensions
                 GIT_REPOSITORY https://github.com/free-audio/clap-juce-extensions.git
-                GIT_TAG main
-                GIT_SHALLOW TRUE)
+                GIT_TAG ${SNARAL_CLAP_EXT_COMMIT}
+                GIT_SHALLOW FALSE)
             FetchContent_MakeAvailable(clap-juce-extensions)
         endif()
     endif()
@@ -143,8 +149,13 @@ if(SNARAL_BUILD_PLUGIN)
         juce::juce_audio_utils
         juce::juce_dsp
         PUBLIC juce::juce_recommended_config_flags
-        juce::juce_recommended_lto_flags
         juce::juce_recommended_warning_flags)
+    if(SNARAL_ENABLE_LTO)  # ci-speed
+        target_link_libraries(Snaral PUBLIC juce::juce_recommended_lto_flags)
+    endif()
+    if(SNARAL_UNITY_BUILD)  # ci-speed: Snaral shared-code target only (tests and JUCE modules untouched)
+        set_target_properties(Snaral PROPERTIES UNITY_BUILD ON UNITY_BUILD_BATCH_SIZE ${SNARAL_UNITY_BATCH_SIZE})
+    endif()
     juce_generate_juce_header(Snaral)
 
     if(SNARAL_BUILD_CLAP)

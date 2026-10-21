@@ -21,6 +21,8 @@ JUCE is pinned in `CMakeLists.txt`. clap-juce-extensions is currently fetched fr
 |---|---|---|
 | `SNARAL_BUILD_PLUGIN` | ON | Build the plug-in formats, standalone and JUCE-dependent tests. OFF builds only the JUCE-free tests. |
 | `SNARAL_BUILD_CLAP` | ON | Also build the CLAP plug-in (needs clap-juce-extensions). |
+| `SNARAL_ENABLE_LTO` | ON | Link-time optimisation for the plug-in. CI turns it OFF for PR / branch builds and ON for tag / publish builds; `tools/build_juce.sh` and `tools/dev_build.sh` default to OFF. |
+| `SNARAL_UNITY_BUILD` | ON | Unity-batch `Source/*.cpp` for the plug-in target only (batch size `SNARAL_UNITY_BATCH_SIZE`, default 8). Tests and JUCE modules are unaffected. |
 | `SNARAL_JUCE_DIR` | empty | Path to a local JUCE checkout instead of fetching. |
 | `SNARAL_CLAP_EXT_DIR` | empty | Path to a local clap-juce-extensions checkout instead of fetching. |
 | `CMAKE_OSX_ARCHITECTURES` | host | `arm64` or `x86_64` for macOS builds (separate artifacts in the beta). |
@@ -59,7 +61,9 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DSNARAL_BUILD_CLAP=OFF
 
 One format only: `cmake --build build --config Release --target Snaral_VST3` (also `Snaral_Standalone`, `Snaral_CLAP`, `Snaral_AU` on macOS, `Snaral_LV2` on Linux). Outputs appear under `build/Snaral_artefacts/<config>/<Format>/` (the config folder depends on the generator).
 
-`tools/build_juce.sh [target...]` is a helper for the shared development container: it builds in `build-juce` with Ninja, uses the container's local JUCE and clap-juce-extensions checkouts (`/home/claude/deps/...`) and a global build lock. On any other machine use the plain CMake commands above. Sanitizer and validator commands are in [verification](specs/verification.md) and [QA plan](specs/qa-plan.md).
+`tools/build_juce.sh [target...]` is a helper for the shared development container: it builds in `build-juce` with Ninja, uses the container's local JUCE and clap-juce-extensions checkouts (`/home/claude/deps/...`) and a global build lock. It uses ccache when installed and builds with LTO off (`SNARAL_ENABLE_LTO=ON` to override). On any other machine use the plain CMake commands above.
+
+Fast iteration: `tools/dev_build.sh [--run]` builds only the Standalone target (no VST3/CLAP/LV2, no LTO, no tests) into `build-dev` with Ninja, ccache if present and unity batches; `--run` launches it. If a unity batch ever causes a name clash, configure with `-DSNARAL_UNITY_BUILD=OFF`. Sanitizer and validator commands are in [verification](specs/verification.md) and [QA plan](specs/qa-plan.md).
 
 ## CI artifacts and GitHub Releases
 

@@ -9,7 +9,13 @@ on:
     inputs:
       version:
         description: "Version string for the build, e.g. 0.2.0-beta.1 (no leading v)"
-        required: true
+        required: false
+        default: "0.0.0-ci.manual"
+        type: string
+      platforms:
+        description: "Platforms to build: all, or a comma list of windows-x64,macos-arm64,macos-x86_64,linux-x64 (publishing needs all)"
+        required: false
+        default: "all"
         type: string
       publish:
         description: "Also publish a GitHub PRE-release tagged v<version> from this commit"
@@ -19,8 +25,8 @@ on:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  # Never cancel a tag (release) build; cancel superseded branch / PR runs.
-  cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
+  # Never cancel a tag (release) or manual dispatch build; cancel superseded branch / PR runs.
+  cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') && github.event_name != 'workflow_dispatch' }}
 
 permissions:
   contents: read
@@ -28,6 +34,8 @@ permissions:
 env:
   CMAKE_BUILD_TYPE: Release
   DEPS_DIR: ${{ github.workspace }}/.deps
+  CCACHE_COMPRESS: "1"
+  CCACHE_MAXSIZE: 500M
 
 jobs:
   meta:
@@ -38,8 +46,11 @@ jobs:
       version: ${{ steps.v.outputs.version }}
       tag: ${{ steps.v.outputs.tag }}
       publish: ${{ steps.v.outputs.publish }}
+      lto: ${{ steps.v.outputs.lto }}
+      matrix: ${{ steps.v.outputs.matrix }}
+      has_linux: ${{ steps.v.outputs.has_linux }}
     steps:
-      - name: Compute version
+      - name: Compute version, LTO mode and build matrix
         id: v
         shell: bash
         env:
@@ -48,6 +59,7 @@ jobs:
           REF_NAME: ${{ github.ref_name }}
           INPUT_VERSION: ${{ inputs.version }}
           INPUT_PUBLISH: ${{ inputs.publish }}
+          INPUT_PLATFORMS: ${{ inputs.platforms }}
           SHA: ${{ github.sha }}
         run: |
           set -euo pipefail
@@ -69,12 +81,77 @@ jobs:
             echo "Refusing to publish '$version': beta releases need a pre-release suffix like -beta.1" >&2
             exit 1
           fi
+
+          # LTO is slow: only release builds (tag or publish) use it; PR / branch CI builds skip it.
+          lto=OFF
+          [[ "$publish" == true ]] && lto=ON
+
+          # Platform selection (workflow_dispatch only; every other event builds all four).
+          platforms="all"
+          [[ "$EVENT" == "workflow_dispatch" && -n "$INPUT_PLATFORMS" ]] && platforms="$INPUT_PLATFORMS"
+          platforms="${platforms// /}"
+          if [[ "$publish" == true && "$platforms" != "all" ]]; then
+            echo "Refusing to publish a partial build (platforms='$platforms'); use platforms=all." >&2
+            exit 1
+          fi
+          all='[
+            {"id":"windows-x64","label":"Windows x64","runner":"windows-2022","os":"windows","arch":"x64","osx_arch":"","run_tests":true},
+            {"id":"macos-arm64","label":"macOS arm64","runner":"macos-15","os":"macos","arch":"arm64","osx_arch":"arm64","run_tests":true},
+            {"id":"macos-x86_64","label":"macOS x86_64 (cross-built)","runner":"macos-15","os":"macos","arch":"x86_64","osx_arch":"x86_64","run_tests":false},
+            {"id":"linux-x64","label":"Linux x64","runner":"ubuntu-24.04","os":"linux","arch":"x64","osx_arch":"","run_tests":true}
+          ]'
+          if [[ "$platforms" == "all" ]]; then
+            matrix="$(jq -c '{include: .}' <<<"$all")"
+          else
+            matrix="$(jq -c --arg p "$platforms" '{include: [ .[] | select(.id as $i | ($p | split(",")) | index($i)) ]}' <<<"$all")"
+          fi
+          n="$(jq '.include | length' <<<"$matrix")"
+          want="$(awk -F, '{print NF}' <<<"$platforms")"
+          if [[ "$platforms" != "all" && "$n" != "$want" ]]; then
+            echo "Unknown platform in '$platforms'" >&2
+            exit 1
+          fi
+          has_linux="$(jq '[.include[] | select(.os == "linux")] | length > 0' <<<"$matrix")"
           {
             echo "version=$version"
             echo "tag=v$version"
             echo "publish=$publish"
+            echo "lto=$lto"
+            echo "matrix=$matrix"
+            echo "has_linux=$has_linux"
           } >> "$GITHUB_OUTPUT"
-          echo "Version: $version (publish=$publish)"
+          echo "Version: $version (publish=$publish, lto=$lto, platforms=$platforms)"
+
+  # Fast feedback: JUCE-free unit tests only (no JUCE download, no plug-in build). Gates nothing else.
+  unit-tests:
+    name: Unit tests (Linux, JUCE-free)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: ccache
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: unit-tests-linux
+          max-size: 300M
+
+      - name: Install build tools
+        run: |
+          source tools/ci_lib.sh
+          command -v ninja >/dev/null || { retry 4 15 sudo apt-get update; retry 4 15 sudo apt-get install -y --no-install-recommends ninja-build; }
+
+      - name: Configure
+        run: |
+          cmake -S . -B build-tests -G Ninja -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+            -DSNARAL_BUILD_PLUGIN=OFF
+
+      - name: Build
+        run: cmake --build build-tests --parallel "$(nproc)"
+
+      - name: Test
+        run: ctest --test-dir build-tests --output-on-failure --timeout 120 --parallel "$(nproc)"
 
   build:
     name: ${{ matrix.label }}
@@ -83,44 +160,13 @@ jobs:
     timeout-minutes: 90
     strategy:
       fail-fast: false
-      matrix:
-        include:
-          - label: Windows x64
-            runner: windows-2022
-            os: windows
-            arch: x64
-            generator: -A x64
-            cmake_extra: ""
-            run_tests: true
-          - label: macOS arm64
-            runner: macos-15
-            os: macos
-            arch: arm64
-            generator: -G Ninja
-            cmake_extra: -DCMAKE_OSX_ARCHITECTURES=arm64
-            run_tests: true
-          # Cross-compiled on the arm64 runner. A hosted Intel runner (macos-15-intel) also exists in
-          # actions/runner-images, but Intel images are being phased out, so we do not depend on it.
-          # The x86_64 binaries cannot be run here, so no ctest for this entry.
-          - label: macOS x86_64 (cross-built)
-            runner: macos-15
-            os: macos
-            arch: x86_64
-            generator: -G Ninja
-            cmake_extra: -DCMAKE_OSX_ARCHITECTURES=x86_64
-            run_tests: false
-          - label: Linux x64
-            runner: ubuntu-24.04
-            os: linux
-            arch: x64
-            generator: -G Ninja
-            cmake_extra: ""
-            run_tests: true
+      matrix: ${{ fromJSON(needs.meta.outputs.matrix) }}
     defaults:
       run:
         shell: bash
     env:
       VERSION: ${{ needs.meta.outputs.version }}
+      LTO: ${{ needs.meta.outputs.lto }}
       PKG_NAME: snaral-${{ needs.meta.outputs.version }}-${{ matrix.os }}-${{ matrix.arch }}
     steps:
       - uses: actions/checkout@v4
@@ -132,9 +178,9 @@ jobs:
           source tools/ci_lib.sh
           retry 4 15 sudo apt-get update
           # JUCE docs "Linux Dependencies" (audio_devices, graphics, gui_basics, opengl) with curl/webkit off
-          # (JUCE_USE_CURL=0, JUCE_WEB_BROWSER=0), plus build tooling and xvfb for pluginval.
+          # (JUCE_USE_CURL=0, JUCE_WEB_BROWSER=0), plus build tooling. pluginval has its own job.
           retry 4 15 sudo apt-get install -y --no-install-recommends \
-            build-essential cmake ninja-build git ccache zip unzip curl xvfb \
+            build-essential cmake ninja-build git zip unzip curl \
             libasound2-dev libjack-jackd2-dev \
             libfreetype-dev libfontconfig1-dev \
             libx11-dev libxcomposite-dev libxcursor-dev libxext-dev libxinerama-dev libxi-dev libxrandr-dev libxrender-dev \
@@ -145,80 +191,81 @@ jobs:
         run: |
           set -euo pipefail
           source tools/ci_lib.sh
-          for t in ninja ccache; do
-            command -v "$t" >/dev/null || retry 3 15 brew install "$t"
-          done
+          command -v ninja >/dev/null || retry 3 15 brew install ninja
 
-      - name: Cache JUCE checkout
+      - name: Cache JUCE and clap-juce-extensions checkouts
         uses: actions/cache@v4
         with:
-          path: ${{ env.DEPS_DIR }}/JUCE
-          key: deps-juce-${{ hashFiles('CMakeLists.txt') }}
+          path: ${{ env.DEPS_DIR }}
+          # Both pins (JUCE tag, clap-juce-extensions commit) live in CMakeLists.txt.
+          key: deps-${{ hashFiles('CMakeLists.txt', 'tools/ci_fetch_deps.sh') }}
 
-      - name: Cache ccache
-        if: matrix.os != 'windows'
-        uses: actions/cache@v4
-        with:
-          path: ~/.ccache
-          key: ccache-${{ matrix.os }}-${{ matrix.arch }}-${{ hashFiles('CMakeLists.txt') }}-${{ github.sha }}
-          restore-keys: |
-            ccache-${{ matrix.os }}-${{ matrix.arch }}-${{ hashFiles('CMakeLists.txt') }}-
-            ccache-${{ matrix.os }}-${{ matrix.arch }}-
-
-      - name: Fetch JUCE and clap-juce-extensions
+      - name: Fetch JUCE and clap-juce-extensions (pinned)
         run: tools/ci_fetch_deps.sh "$DEPS_DIR"
+
+      # Compiler cache: ccache on macOS / Linux, sccache on Windows (MSVC). Keyed per OS + arch (+ compiler image).
+      - name: Compiler cache
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          variant: ${{ matrix.os == 'windows' && 'sccache' || 'ccache' }}
+          key: ${{ matrix.runner }}-${{ matrix.arch }}-lto${{ env.LTO }}
+          restore-keys: |
+            ${{ matrix.runner }}-${{ matrix.arch }}-
+          max-size: 500M
+
+      - name: Set up MSVC (Ninja builds on Windows)
+        if: matrix.os == 'windows'
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
 
       - name: Configure
         env:
-          GENERATOR: ${{ matrix.generator }}
-          CMAKE_EXTRA: ${{ matrix.cmake_extra }}
-          USE_CCACHE: ${{ matrix.os != 'windows' }}
+          OS: ${{ matrix.os }}
+          OSX_ARCH: ${{ matrix.osx_arch }}
         run: |
           set -euo pipefail
-          launcher=()
-          if [[ "$USE_CCACHE" == true ]]; then
-            export CCACHE_DIR="$HOME/.ccache" CCACHE_MAXSIZE=500M
-            launcher=(-DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache)
+          extra=()
+          if [[ "$OS" == windows ]]; then
+            extra+=(-DCMAKE_C_COMPILER=cl -DCMAKE_CXX_COMPILER=cl -DCMAKE_C_COMPILER_LAUNCHER=sccache -DCMAKE_CXX_COMPILER_LAUNCHER=sccache)
+          else
+            extra+=(-DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache)
           fi
-          # shellcheck disable=SC2086  # GENERATOR / CMAKE_EXTRA are trusted matrix constants, word-split on purpose
-          cmake -S . -B build $GENERATOR $CMAKE_EXTRA ${launcher[@]+"${launcher[@]}"} \
+          [[ -n "$OSX_ARCH" ]] && extra+=("-DCMAKE_OSX_ARCHITECTURES=$OSX_ARCH")
+          cmake -S . -B build -G Ninja "${extra[@]}" \
             -DCMAKE_BUILD_TYPE="$CMAKE_BUILD_TYPE" \
             -DSNARAL_BUILD_PLUGIN=ON -DSNARAL_BUILD_CLAP=ON \
+            -DSNARAL_ENABLE_LTO="$LTO" -DSNARAL_UNITY_BUILD=ON \
             -DSNARAL_JUCE_DIR="$DEPS_DIR/JUCE" \
             -DSNARAL_CLAP_EXT_DIR="$DEPS_DIR/clap-juce-extensions"
 
-      - name: Build
+      # One cmake --build with every format target: the shared-code library is compiled once.
+      # The JUCE-free tests run in the unit-tests job, so only the JUCE-dependent tests are built here.
+      - name: Build all formats
+        env:
+          OS: ${{ matrix.os }}
+          RUN_TESTS: ${{ matrix.run_tests }}
         run: |
           set -euo pipefail
-          export CCACHE_DIR="$HOME/.ccache" CCACHE_MAXSIZE=500M
-          cmake --build build --config "$CMAKE_BUILD_TYPE" --parallel 4
+          flag=()
+          [[ "$RUN_TESTS" == true ]] && flag=(--with-tests)
+          tools/ci_build.sh "$OS" build ${flag[@]+"${flag[@]}"}
+
+      - name: Cache statistics
+        if: always()
+        run: |
+          if command -v sccache >/dev/null; then sccache --show-stats || true; fi
           if command -v ccache >/dev/null; then ccache -s || true; fi
 
-      - name: Test
+      - name: JUCE-dependent tests
         if: matrix.run_tests
-        run: ctest --test-dir build -C "$CMAKE_BUILD_TYPE" --output-on-failure --timeout 120
+        run: ctest --test-dir build -C "$CMAKE_BUILD_TYPE" -R '^snaral_juce_' --output-on-failure --timeout 120
 
       - name: Package
         run: tools/package.sh "$VERSION" "${{ matrix.os }}" "${{ matrix.arch }}" build dist
 
       - name: Smoke check (artefacts present, signatures, architecture)
         run: tools/smoke.sh "${{ matrix.os }}" "${{ matrix.arch }}" "dist/$PKG_NAME"
-
-      - name: pluginval on VST3 (Linux, advisory)
-        if: matrix.os == 'linux'
-        id: pluginval
-        continue-on-error: true
-        timeout-minutes: 15
-        run: tools/smoke.sh linux x64 "dist/$PKG_NAME" --pluginval pluginval.log
-
-      - name: Upload pluginval log
-        if: always() && matrix.os == 'linux'
-        uses: actions/upload-artifact@v4
-        with:
-          name: pluginval-log-${{ matrix.os }}-${{ matrix.arch }}
-          path: pluginval.log
-          if-no-files-found: ignore
-          retention-days: 14
 
       - name: Upload package
         uses: actions/upload-artifact@v4
@@ -228,8 +275,52 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
+  # Advisory pluginval run on the finished Linux package, off the critical path (gates nothing).
+  pluginval:
+    name: pluginval (Linux, advisory)
+    needs: [meta, build]
+    if: needs.meta.outputs.has_linux == 'true'
+    runs-on: ubuntu-24.04
+    continue-on-error: true
+    timeout-minutes: 20
+    env:
+      PKG_NAME: snaral-${{ needs.meta.outputs.version }}-linux-x64
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download Linux package
+        uses: actions/download-artifact@v4
+        with:
+          name: pkg-linux-x64
+          path: dist
+
+      - name: Install runtime tools
+        run: |
+          set -euo pipefail
+          source tools/ci_lib.sh
+          retry 4 15 sudo apt-get update
+          retry 4 15 sudo apt-get install -y --no-install-recommends xvfb unzip curl \
+            libasound2t64 libjack-jackd2-0 libfreetype6 libfontconfig1 libx11-6 libxcomposite1 libxcursor1 libxext6 \
+            libxinerama1 libxi6 libxrandr2 libxrender1 libgl1 libglu1-mesa libegl1
+
+      - name: pluginval on VST3
+        run: |
+          unzip -q "dist/$PKG_NAME.zip" -d dist
+          tools/smoke.sh linux x64 "dist/$PKG_NAME" --pluginval pluginval.log
+
+      - name: Upload pluginval log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pluginval-log-linux-x64
+          path: pluginval.log
+          if-no-files-found: ignore
+          retention-days: 14
+
   release:
     name: Publish pre-release
+    # Needs every build job (meta refuses to publish unless all four platforms are selected). unit-tests and
+    # pluginval run in parallel and deliberately gate nothing.
     needs: [meta, build]
     if: needs.meta.outputs.publish == 'true'
     runs-on: ubuntu-24.04
