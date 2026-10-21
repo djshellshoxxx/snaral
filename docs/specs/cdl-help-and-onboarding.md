@@ -22,3 +22,10 @@ Use the existing Onboarding Sound Tour spec, promoted from expansion to core rel
 3. Onboarding appears only on first run unless requested again; cancel/skip restores the prior patch exactly.
 4. Documentation build/check catches missing parameter IDs and stale format claims.
 5. Accessibility labels and keyboard navigation remain available when visual tooltips are disabled.
+
+## Implementation notes (UI kit)
+- Code: `Source/UI/HelpContent.{h,cpp}` (static content), `Source/UI/HelpPanel.{h,cpp}` (searchable view), `Source/UI/OnboardingOverlay.{h,cpp}` (tour; see expansion-onboarding-tour.md).
+- Topics are generated from `snaral::parameterTable` (name, unit, range, default) plus a hand-written purpose line per parameter, so the help cannot drift from the shipped controls. `HelpContent::undocumentedParameterIds()` lists parameters without a purpose line; a unit test requires it to be empty, which is the "check catches missing parameter IDs" gate.
+- Contents: quick start, signal flow, the five macros (one topic each), one topic per Advanced tab, keyboard shortcuts, MIDI learn guide, presets, formats and known limitations, troubleshooting, support.
+- Search matches titles, bodies, keywords, parameter ids and names. The website button uses an injectable `openUrl` and only runs on a click. Help needs no network.
+- Visual tooltips are optional (Options); accessible names and descriptions are always set on every widget.
