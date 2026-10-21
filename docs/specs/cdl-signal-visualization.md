@@ -24,3 +24,11 @@ Provide visible signal feedback and an honest estimate of Snaral’s own process
 3. CPU gauge calculation matches instrumented callback/block timing within 5 percentage points in the harness.
 4. Overrun indicator triggers only on measured over-deadline callback.
 5. Tooltips/help explain signal point, update rate, and CPU estimate scope.
+
+## Implementation notes (UI kit)
+- Code: `Source/UI/Displays.{h,cpp}` (`ScopeView`, `LevelMeter`, `CpuGauge`), `Source/UI/UiSources.h` (`ScopeSource`, `MeterSource`, `CpuSource` and the lock-free helpers `ScopeRingBuffer`, `AtomicMeterSource`, `AtomicCpuSource`).
+- The UI only calls the abstract sources on the message thread. The engine side implements them with atomics; no UI code runs on the audio thread.
+- `ScopeView` refreshes at 30 Hz, or 2 Hz when animations are off (reduced motion). Its timer runs only while the component is showing and enabled; `setDisplayEnabled(false)` (Options) stops all drawing work. Views: Output, Sub, Mid (disabled when the source has no such tap) and a Mono sum. In narrow layouts the tap buttons collapse into one cycling button. The caption describes the tap and never claims sound quality.
+- `LevelMeter` shows RMS bars with a peak overlay, a 1.5 s peak hold that then falls at 20 dB/s, numeric PK and RMS readouts in dBFS, and a CLIP indicator that appears only when a reading reached full scale, stays for 2 s and can be cleared by a click. No data shows dashes, never a stale clip state.
+- `CpuGauge` is labelled "DSP CPU" (the task brief takes precedence over the "Snaral DSP" wording above; the tooltip says it is one audio core of Snaral's own processing). It smooths over 1 s, shows an OVERRUN marker for 3 s only when the source reports a measured over-deadline callback, shows ">100%" above full load and "--" without data. It never infers host load.
+- Tests: ballistics, honest-data behaviour, clip latch, timer gating and the ring buffer are in `tests/juce/UiKitTests.cpp`; renderings are produced by `tools/ui_snapshot`.
