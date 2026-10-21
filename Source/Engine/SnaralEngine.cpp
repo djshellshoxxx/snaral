@@ -298,10 +298,8 @@ struct SnaralEngine::Impl
         sLfoPos.setTarget (motion * lfoDepth * lfoPositionRange);
 
         // ---- mid-bus effects ----
-        auto fp = FormantFurnaceParams::from (snap);
-        fp.envAmount *= motion;
-        fp.lfoAmount *= motion;
-        furnace.setParams (fp);
+        // FormantFurnaceParams::from already applies the Motion multiplier to the modulation depths.
+        furnace.setParams (FormantFurnaceParams::from (snap));
         fracture.setParams (HarmonicFractureParams::from (snap));
         drive.setParams (DriveParams::from (snap));
         width.setParams (WidthParams::from (snap));
