@@ -144,6 +144,7 @@ if(SNARAL_BUILD_PLUGIN)
         JUCE_WEB_BROWSER=0
         JUCE_USE_CURL=0
         JUCE_VST3_CAN_REPLACE_VST2=0
+        JUCE_MODAL_LOOPS_PERMITTED=1   # lets the editor tests pump the message loop (MessageManager::runDispatchLoopUntil)
         JUCE_DISPLAY_SPLASH_SCREEN=0
         JUCE_REPORT_APP_USAGE=0
         JUCE_STRICT_REFCOUNTEDPOINTER=1)

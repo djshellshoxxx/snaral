@@ -46,7 +46,6 @@ const std::vector<AdvancedSectionSpec>& advancedSections()
                                                  "traj_depth", "traj_curve", "traj_loop" } },
 
         { T::Drive, "Drive",           { "drive_type", "drive_amount", "drive_tone", "drive_mix" } },
-        { T::Drive, "Quality",         { "oversampling_mode" } },
 
         { T::Texture, "Noise",         { "noise_level", "noise_tone" } },
         { T::Texture, "Metal",         { "metal_level", "metal_decay_ms", "metal_tune" } },
@@ -58,6 +57,7 @@ const std::vector<AdvancedSectionSpec>& advancedSections()
                                              "fracture_mix" } },
 
         { T::Output, "Output",         { "output_trim_db", "limiter_enabled", "limiter_ceiling_db" } },
+        { T::Output, "Quality",        { "oversampling_mode" } },   // ui-layout.md: Quality lives in the Output tab
     };
     return specs;
 }
@@ -70,10 +70,10 @@ std::vector<juce::String> advancedGroupsForTab (AdvancedTab t)
         case AdvancedTab::Sub:          return { "Sub" };
         case AdvancedTab::Sources:      return { "Mid" };
         case AdvancedTab::FilterMotion: return { "Filter", "Motion", "Trajectory" };
-        case AdvancedTab::Drive:        return { "Drive", "Quality" };
+        case AdvancedTab::Drive:        return { "Drive" };
         case AdvancedTab::Texture:      return { "Texture" };
         case AdvancedTab::Effects:      return { "Furnace", "Fracture" };
-        case AdvancedTab::Output:       return { "Output" };
+        case AdvancedTab::Output:       return { "Output", "Quality" };
     }
     return {};
 }

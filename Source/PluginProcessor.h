@@ -2,12 +2,15 @@
 
 #include <JuceHeader.h>
 
+#include "Core/MidiLearn.h"
+#include "Core/ReferenceTone.h"
 #include "Engine/CcHook.h"
 #include "Engine/EngineDiagnostics.h"
 #include "Engine/SnaralEngine.h"
 #include "Parameters/JuceParameterLayout.h"
 #include "Parameters/ParameterTable.h"
 #include "State/ProjectState.h"
+#include "State/Pure/PresetBrowserModel.h"
 #include "State/Pure/PresetLibrary.h"
 #include "State/Pure/UndoHistory.h"
 #include "State/Pure/VariationBank.h"
@@ -93,6 +96,25 @@ public:
     /// Returns true if setLatencySamples was called.
     bool applyPendingLatency();
 
+    // ---- editor-facing additions (message thread unless stated) ----
+    /// Preset browser model shared by every editor instance (loaded preset, dirty flag, audition state).
+    snaral::PresetBrowserModel& presetBrowser() noexcept { return presetBrowser_; }
+
+    /// Publishes `snapshot` to the host parameters as ONE block-boundary update (restore-sequence guard). With
+    /// soundOnly (default) utility parameters (bypass, solo, mutes) keep their current values.
+    void applySoundSnapshot (const snaral::ParamSnapshot& snapshot, bool soundOnly = true);
+
+    /// Plays or releases a note from the UI (preset audition, virtual keys). Message thread; consumed by the next block.
+    void queueUiNote (int note, int velocity, bool on) noexcept;
+
+    /// Standalone 440 Hz reference tone (refuses to enable in plug-in mode). The editor's Panic action also calls referenceTone().stop().
+    snaral::ReferenceTone& referenceTone() noexcept { return *referenceTone_; }
+
+    /// MIDI-learn mappings (stored as text in the MIDILEARN child of the project state and published to the audio
+    /// thread). setMidiMappings validates the whole list and changes nothing on failure.
+    std::vector<snaral::midi::MidiMapping> midiMappings() const;
+    bool setMidiMappings (const std::vector<snaral::midi::MidiMapping>& mappings, std::string* error = nullptr);
+
     /// Runs `fn` with state restore excluded (used by state restore and tests); see ProjectState.h.
     std::uint64_t restoreSequence() const noexcept { return stateRestoreSequence_.load (std::memory_order_acquire); }
 
@@ -103,6 +125,8 @@ private:
 
     juce::AudioProcessorValueTreeState parameters_;
     std::array<std::atomic<float>*, static_cast<std::size_t> (snaral::parameterCount)> rawValues_ {};
+
+    void publishMidiMappingsFromTree();
 
     snaral::SnaralEngine engine_;
     snaral::ParamSnapshot snapshot_;      // last coherent snapshot (audio thread)
@@ -116,6 +140,10 @@ private:
     bool prepared_ = false;
     double sampleRate_ = 44100.0;
 
+    struct UiNote { std::uint8_t note = 0, velocity = 0; bool on = false; };
+    snaral::SpscRing<UiNote, 64> uiNotes_;
+    std::unique_ptr<snaral::ReferenceTone> referenceTone_;
+
     std::atomic<bool> panicRequested_ { false };
     std::atomic<int> requestedLatency_ { 0 };
     std::atomic<bool> latencyDirty_ { false };
@@ -125,6 +153,7 @@ private:
     std::mutex stateMutex_;
 
     snaral::PresetLibrary presetLibrary_;
+    snaral::PresetBrowserModel presetBrowser_ { presetLibrary_ };
     snaral::UndoHistory undoHistory_;
     snaral::VariationBank variations_;
     snaral::AbCompare ab_;

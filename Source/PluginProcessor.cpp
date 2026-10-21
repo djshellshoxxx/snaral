@@ -22,6 +22,8 @@ SnaralAudioProcessor::SnaralAudioProcessor()
     , parameters_ (*this, nullptr, snaral::project::rootType, snaral::createParameterLayout())
     , presetLibrary_ (snaral::LibraryPaths::platformDefault())
 {
+    referenceTone_ = std::make_unique<snaral::ReferenceTone> (wrapperType == wrapperType_Standalone ? snaral::ReferenceTone::Mode::Standalone
+                                                                                                    : snaral::ReferenceTone::Mode::Plugin);
     for (std::size_t i = 0; i < rawValues_.size(); ++i)
     {
         const auto id = snaral::parameterTable[i].id;
@@ -59,6 +61,7 @@ void SnaralAudioProcessor::prepareToPlay (double sampleRate, int maximumExpected
 {
     sampleRate_ = std::isfinite (sampleRate) && sampleRate > 1.0 ? sampleRate : 44100.0;
     engine_.prepare (sampleRate_, juce::jmax (1, maximumExpectedSamplesPerBlock));
+    referenceTone_->prepare (sampleRate_);
     ccRouter_.reset();
     wasPlaying_ = false;
 
@@ -181,6 +184,18 @@ void SnaralAudioProcessor::handleMidiAndRender (juce::AudioBuffer<float>& buffer
         midiEvents_.push_back (stop);
     }
 
+    UiNote uiNote;
+    while (midiEvents_.size() < maxMidiEventsPerBlock && uiNotes_.pop (uiNote)) // editor audition / virtual keys, at sample 0
+    {
+        snaral::EngineMidiEvent e;
+        e.type = uiNote.on ? Type::NoteOn : Type::NoteOff;
+        e.channel = 0;
+        e.data1 = uiNote.note;
+        e.data2 = uiNote.on ? uiNote.velocity : std::uint8_t { 0 };
+        e.sampleOffset = 0;
+        midiEvents_.push_back (e);
+    }
+
     std::uint32_t dropped = 0;
     for (const auto meta : midi)
     {
@@ -260,6 +275,8 @@ void SnaralAudioProcessor::handleMidiAndRender (juce::AudioBuffer<float>& buffer
     }
     if (pos < numSamples)
         engine_.render (left + pos, right != nullptr ? right + pos : nullptr, numSamples - pos);
+
+    referenceTone_->process (left, right != nullptr ? right : left, numSamples); // no-op unless enabled (standalone only)
 }
 
 bool SnaralAudioProcessor::applyPendingLatency()
@@ -293,6 +310,68 @@ void SnaralAudioProcessor::timerCallback()
     pumpMidiLearn();
 }
 
+void SnaralAudioProcessor::applySoundSnapshot (const snaral::ParamSnapshot& snapshot, bool soundOnly)
+{
+    struct RestoreSequenceGuard
+    {
+        explicit RestoreSequenceGuard (std::atomic<std::uint64_t>& s) noexcept : sequence (s) { sequence.fetch_add (1, std::memory_order_acq_rel); }
+        ~RestoreSequenceGuard() { sequence.fetch_add (1, std::memory_order_release); }
+        std::atomic<std::uint64_t>& sequence;
+    } guard (stateRestoreSequence_);
+    snaral::project::applySnapshot (parameters_, snapshot, soundOnly);
+}
+
+void SnaralAudioProcessor::queueUiNote (int note, int velocity, bool on) noexcept
+{
+    UiNote n;
+    n.note = static_cast<std::uint8_t> (juce::jlimit (0, 127, note));
+    n.velocity = static_cast<std::uint8_t> (juce::jlimit (1, 127, velocity));
+    n.on = on;
+    uiNotes_.push (n);
+}
+
+std::vector<snaral::midi::MidiMapping> SnaralAudioProcessor::midiMappings() const
+{
+    const auto text = midiLearnTree_.getProperty ("map").toString().toStdString();
+    if (text.empty())
+        return {};
+    auto parsed = snaral::midi::fromText (text);
+    return parsed.ok ? parsed.data.mappings : std::vector<snaral::midi::MidiMapping> {};
+}
+
+bool SnaralAudioProcessor::setMidiMappings (const std::vector<snaral::midi::MidiMapping>& mappings, std::string* error)
+{
+    if (auto problem = snaral::midi::validateMappings (mappings); ! problem.empty())
+    {
+        if (error != nullptr)
+            *error = std::move (problem);
+        return false;
+    }
+    midiLearnTree_.setProperty ("map", juce::String (snaral::midi::toText ({ mappings })), nullptr);
+    publishMidiMappingsFromTree();
+    return true;
+}
+
+void SnaralAudioProcessor::publishMidiMappingsFromTree()
+{
+    const auto list = midiMappings();
+    snaral::CcMapTable table;
+    for (const auto& m : list)
+    {
+        if (table.count >= snaral::maxCcMappings)
+            break;
+        snaral::CcMapping cc;
+        cc.paramIndex = static_cast<std::int16_t> (m.target);
+        cc.cc = static_cast<std::uint8_t> (m.cc);
+        cc.channel = static_cast<std::uint8_t> (m.channel);
+        cc.minNorm = m.min;
+        cc.maxNorm = m.max;
+        cc.invert = m.invert;
+        table.maps[static_cast<std::size_t> (table.count++)] = cc;
+    }
+    ccPublisher_.publish (table);
+}
+
 juce::AudioProcessorEditor* SnaralAudioProcessor::createEditor()
 {
     return new SnaralAudioProcessorEditor (*this);
@@ -304,6 +383,8 @@ void SnaralAudioProcessor::getStateInformation (juce::MemoryBlock& destination)
     model.params = snaral::project::snapshotFromApvts (parameters_);
     model.variations = variations_;
     model.ab = ab_;
+    if (model.ab.engaged())
+        model.ab.captureLive (model.params); // the active side holds the live edits when the project is saved
     model.presetName = presetInfo_.name;
     model.presetId = presetInfo_.id;
     model.presetModified = presetInfo_.modified;
@@ -339,6 +420,7 @@ void SnaralAudioProcessor::setStateInformation (const void* data, int sizeInByte
     ab_ = result.model.ab;
     presetInfo_ = { result.model.presetName, result.model.presetId, result.model.presetModified };
     midiLearnTree_ = result.model.midiLearn;
+    publishMidiMappingsFromTree();
     uiTree_ = result.model.ui;
     undoHistory_.reset (result.model.params);
 }
