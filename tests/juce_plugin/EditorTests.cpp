@@ -176,17 +176,11 @@ static void testTweakEveryControl()
         }
         else if (auto* tb = dynamic_cast<juce::Button*> (comp))
         {
-            if (tb->getClickingTogglesState() || tb->getToggleState() || tb->getRadioGroupId() == 0)
-            {
-                tb->setToggleState (! tb->getToggleState(), juce::sendNotificationSync);
-                expectChanged (prm->getValue() != before);
-                tb->setToggleState (! tb->getToggleState(), juce::sendNotificationSync);
-            }
-            else
-            {
-                tb->triggerClick();
-                ++driven;
-            }
+            const bool toggles = tb->getClickingTogglesState();
+            auto press = [&] { if (toggles) tb->setToggleState (! tb->getToggleState(), juce::sendNotificationSync); else { tb->triggerClick(); pump (40); } };
+            press();
+            expectChanged (prm->getValue() != before);
+            press();
         }
         else
         {
@@ -220,7 +214,10 @@ static void testActionsAndOverlays()
     // undo / redo from a knob gesture
     auto& weight = ed.mainView().macro (0);
     const double w0 = weight.getValue();
-    weight.setValue (w0 > 50 ? 10.0 : 90.0, juce::sendNotificationSync);
+    {
+        juce::Slider::ScopedDragNotification drag (weight);   // what a mouse drag, key press or text entry does
+        weight.setValue (w0 > 50 ? 10.0 : 90.0, juce::sendNotificationSync);
+    }
     pump (700);
     ctl.refreshNow();
     CHECK (ctl.canUndo());
