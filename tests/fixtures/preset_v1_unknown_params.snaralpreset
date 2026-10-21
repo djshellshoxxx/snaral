@@ -1,0 +1,12 @@
+{
+  "format": "snaral-preset",
+  "schema_version": 1,
+  "plugin": { "name": "Snaral", "state_version": "9.9.9" },
+  "preset": { "name": "Forward Compat", "tags": ["x"] },
+  "parameters": {
+    "weight": 50,
+    "future_param_from_newer_build": 12.5,
+    "bypass": true,
+    "filter_type": "bandpass"
+  }
+}

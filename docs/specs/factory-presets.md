@@ -33,6 +33,16 @@ At least three additional presets may expand the range (for example noise-driven
 - Include descriptive tags for layer balance, movement, and texture.
 - Names and descriptions must avoid claims that a patch recreates a named musician, track, sample, or preset.
 
+## Shipped set and conventions
+
+Source of truth: `tools/gen_presets.py` (deterministic; `--check` fails if any file differs from what the generator would write). It emits `Resources/presets/NN_slug.json` in exactly the byte format of `writePreset`, plus `Resources/presets/PROVENANCE.md`. The 27 shipped presets are the 10 required roles (files 01 to 10, in the order of the table above) followed by 17 extras: Rolling Reese, Neuro Growl, Vowel Talker, Hollow Stab, Clean Sub, Wobble Quarter, Wobble Triplet, Tearout, Noise Gravel, Five Hands, Pulse Lurker, Murk Chord, Trajectory Snarl, Bounce Pluck, Splinter, Slide Weight, Velocity Rasp.
+
+- Preset ids are `factory.<slug>`. Files are complete (every sound parameter present), so `requireComplete` parsing applies.
+- Tags cover the three facet groups the browser filters on: layer balance, motion and texture, plus free role tags. `tests/FactoryPresetTests.cpp` checks that declared tags agree with the facets derived from the parameter values (`deriveFacets`), so a tag cannot silently drift from the sound. By convention the first tag is the browser category.
+- Optional noise and metal are enabled in a minority of presets only.
+- Presets are embedded into the binary at configure time (CMake block "state worker"), so the plug-in has no runtime dependency on the Resources folder. A unit test compares the embedded copies with the files.
+- Provenance and licence: see `Resources/presets/PROVENANCE.md`. Every preset is an original parameter set with no samples or third-party data. The repository licence text must still be confirmed by the owner before a public release.
+
 ## Review record
 
 For every preset, maintain a review table with preset ID/name, parameter-state hash, tested notes, sample rate, level-matched reference condition, peak/RMS measurements, listening observations, and reviewer/date. Measurements and listening claims are added only after the actual render/review.
