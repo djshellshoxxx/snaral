@@ -14,7 +14,9 @@ inline constexpr double twoPi = 6.28318530717958647692;
 inline float dbToGain (float db) noexcept { return std::pow (10.0f, db * 0.05f); }
 inline float gainToDb (float gain) noexcept { return 20.0f * std::log10 (std::max (gain, 1.0e-9f)); }
 inline float midiNoteToHz (float note, float a4Hz = 440.0f) noexcept { return a4Hz * std::exp2 ((note - 69.0f) / 12.0f); }
-inline float clampf (float x, float lo, float hi) noexcept { return x < lo ? lo : (x > hi ? hi : x); }
+/// Clamp that maps NaN to `lo` (the plain `x < lo ? lo : x > hi ? hi : x` form lets NaN through, which then reaches
+/// float->int casts and table indices as undefined behaviour).
+inline float clampf (float x, float lo, float hi) noexcept { return ! (x >= lo) ? lo : (x > hi ? hi : x); }
 inline float sanitize (float x) noexcept { return std::isfinite (x) ? x : 0.0f; }
 inline float flushDenormal (float x) noexcept { return std::fabs (x) < 1.0e-20f ? 0.0f : x; }
 

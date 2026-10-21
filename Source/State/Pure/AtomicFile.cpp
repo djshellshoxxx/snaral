@@ -161,8 +161,6 @@ IoResult readFileLimited (const fs::path& file, std::size_t maxBytes, std::strin
     }
 }
 
-namespace
-{
 bool isReservedDeviceName (std::string_view stem)
 {
     std::string up (stem);
@@ -173,7 +171,6 @@ bool isReservedDeviceName (std::string_view stem)
         return true;
     return up.size() == 4 && (up.rfind ("COM", 0) == 0 || up.rfind ("LPT", 0) == 0) && up[3] >= '0' && up[3] <= '9';
 }
-} // namespace
 
 std::string sanitiseFileName (std::string_view name, std::size_t maxBytes)
 {

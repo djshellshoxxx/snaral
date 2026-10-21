@@ -5,7 +5,9 @@
 #include <vector>
 
 #include "Dsp/Fx/FormantFurnace.h"
+#include "Dsp/Oscillators.h"
 #include "Dsp/SvfFilter.h"
+#include "State/Pure/PresetPack.h"
 
 using namespace snaral;
 
@@ -56,12 +58,48 @@ void testFurnaceAmountsScaledByMotion()
     p = FormantFurnaceParams::from (s);
     CHECK (p.envAmount == 0.0f && p.lfoAmount == 0.0f);
 }
+// BUG-004: pack ids / file names that Windows cannot create (device names, trailing dot) were accepted.
+void testPackNamesRejectWindowsDeviceNames()
+{
+    CHECK (validPackId ("my.pack-1"));
+    CHECK (! validPackId ("con"));
+    CHECK (! validPackId ("nul"));
+    CHECK (! validPackId ("com1.extra"));
+    CHECK (! validPackId ("lpt9"));
+    CHECK (! validPackId ("trailing."));
+    CHECK (validPackId ("console"));
+    CHECK (validPackFileName ("Fat Bass.snaralpreset"));
+    CHECK (! validPackFileName ("CON.snaralpreset"));
+    CHECK (! validPackFileName ("aux.snaralpreset"));
+    CHECK (! validPackFileName ("COM3.snaralpreset"));
+    CHECK (validPackFileName ("COM10.snaralpreset"));
+}
+// BUG-005: clampf let NaN through; a NaN pulse width reached a float->int cast and indexed outside the correlation
+// table (found by DspRobustnessTests under ASan).
+void testClampfAndOscillatorNaN()
+{
+    CHECK (clampf (std::nanf (""), 0.2f, 0.8f) == 0.2f);
+    CHECK (clampf (0.5f, 0.2f, 0.8f) == 0.5f && clampf (-1.0f, 0.2f, 0.8f) == 0.2f && clampf (9.0f, 0.2f, 0.8f) == 0.8f);
+    ParamSnapshot s;
+    s[P::mid_pulse_width] = std::nanf ("");
+    s[P::mid_table_position] = std::nanf ("");
+    s[P::mid_blend] = std::nanf ("");
+    s[P::mid_source_a] = 1.0f;
+    s[P::mid_source_b] = 3.0f;
+    MidOscillator o;
+    o.prepare (48000.0);
+    o.setParams (MidOscParams::from (s));
+    for (int i = 0; i < 4096; ++i)
+        CHECK (std::isfinite (o.process (110.0f, std::nanf (""))));
+}
 } // namespace
 
 int main()
 {
     testSvfReprepareRefreshesCoefficients();
     testFurnaceAmountsScaledByMotion();
+    testPackNamesRejectWindowsDeviceNames();
+    testClampfAndOscillatorNaN();
     std::puts ("BughuntRegressionTests passed");
     return 0;
 }
