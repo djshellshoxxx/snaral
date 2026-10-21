@@ -36,8 +36,8 @@ the future review table).
 | factory.foundation | `01_foundation.json` | Foundation | b5ab9874a536434c |
 | factory.plain_weight | `02_plain_weight.json` | Plain Weight | 59b3fd18f7f068e3 |
 | factory.throat_sweep | `03_throat_sweep.json` | Throat Sweep | 755f55e7c3892d9a |
-| factory.saw_rasp | `04_saw_rasp.json` | Saw Rasp | 05e6d400b058332f |
-| factory.folded_jaw | `05_folded_jaw.json` | Folded Jaw | c359ad7c033a0061 |
+| factory.saw_rasp | `04_saw_rasp.json` | Saw Rasp | 7a5ec990ec3d4e1c |
+| factory.folded_jaw | `05_folded_jaw.json` | Folded Jaw | 4d8ee3c6829f6c73 |
 | factory.machine_bell | `06_machine_bell.json` | Machine Bell | 0aebf73e36295c7d |
 | factory.sync_stalker | `07_sync_stalker.json` | Sync Stalker | c5bf769a9c8c6d9f |
 | factory.free_rotor | `08_free_rotor.json` | Free Rotor | 41e22ac2e1a3dbc8 |

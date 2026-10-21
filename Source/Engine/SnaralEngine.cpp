@@ -495,6 +495,8 @@ struct SnaralEngine::Impl
         for (int i = 0; i < m; ++i)
         {
             const float s = subDelay.process (subBus[i]);
+            diag.pushMidScope (0.5f * (L[i] + R[i])); // scope Mid / Sub taps (diagnosis only, before trim and limiter)
+            diag.pushSubScope (s);
             L[i] += s;
             R[i] += s;
         }
@@ -579,7 +581,10 @@ struct SnaralEngine::Impl
         diag.publishLimiterReductionDb (limiter.currentReductionDb());
 
         const auto t1 = std::chrono::steady_clock::now();
-        cpuAccumSec += std::chrono::duration<double> (t1 - t0).count();
+        const double callSec = std::chrono::duration<double> (t1 - t0).count();
+        if (n >= 32 && callSec > static_cast<double> (n) / sr)
+            diag.addOverrun();   // measured over-deadline call (cdl-signal-visualization: the overrun marker uses only this)
+        cpuAccumSec += callSec;
         cpuAccumSamples += n;
         if (cpuAccumSamples >= 2048)
         {

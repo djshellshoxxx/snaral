@@ -26,6 +26,13 @@ void* operator new (std::size_t n)
     throw std::bad_alloc();
 }
 void* operator new[] (std::size_t n) { return operator new (n); }
+// nothrow forms (std::stable_sort's temporary buffer): replaced too so sanitizer builds see matching new/free pairs
+void* operator new (std::size_t n, const std::nothrow_t&) noexcept
+{
+    if (allocCounterArmed.load (std::memory_order_relaxed)) allocCount.fetch_add (1);
+    return std::malloc (n ? n : 1);
+}
+void* operator new[] (std::size_t n, const std::nothrow_t& t) noexcept { return operator new (n, t); }
 void operator delete (void* p) noexcept { std::free (p); }
 void operator delete[] (void* p) noexcept { std::free (p); }
 void operator delete (void* p, std::size_t) noexcept { std::free (p); }

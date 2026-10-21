@@ -430,8 +430,24 @@ void SnaralAudioProcessorEditor::controllerStateChanged()
 
 void SnaralAudioProcessorEditor::updateStatusChips()
 {
-    if (proc.diagnostics().syncFallbackActive())
+    // status line priority (macros-ui): overrun, ..., tempo unavailable while a sync mode is requested
+    const auto rawOf = [this] (const char* id) { auto* v = proc.getParameters().getRawParameterValue (id); return v != nullptr ? v->load() : 0.0f; };
+    const bool syncRequested = rawOf ("lfo_mode") >= 0.5f || (rawOf ("traj_enabled") >= 0.5f && rawOf ("traj_time_mode") >= 0.5f);
+    const auto overruns = proc.diagnostics().overruns();
+    if (overruns != seenOverruns)
+    {
+        seenOverruns = overruns;
+        overrunChipUntilMs = juce::Time::getMillisecondCounter() + 5000u;
+    }
+    if (static_cast<std::int32_t> (overrunChipUntilMs - juce::Time::getMillisecondCounter()) > 0)
+        status.setChip ("overrun", ui::Severity::Error, "Audio overrun: Snaral used more than the block time. Raise the buffer size or lower Oversampling.");
+    else
+        status.clearChip ("overrun");
+
+    if (syncRequested && proc.diagnostics().syncFallbackActive())
         status.setChip ("tempo", ui::Severity::Warning, snaral::Lfo::fallbackMessage);
+    else if (syncRequested && proc.diagnostics().tempoUnavailable())
+        status.setChip ("tempo", ui::Severity::Warning, "Host tempo unavailable - keeping the last known tempo");
     else
         status.clearChip ("tempo");
 

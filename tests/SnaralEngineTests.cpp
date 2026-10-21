@@ -604,6 +604,19 @@ static void testDiagnostics()
     for (std::size_t i = 0; i < 512; ++i)
         CHECK (std::fabs (scope[i] - 0.5f * (r.L[r.L.size() - 512 + i] + r.R[r.R.size() - 512 + i])) < 1e-6f);
     CHECK (d.scopeWritten() == r.L.size());
+    {   // Sub and Mid scope taps (cdl-signal-visualization): both carry signal; the sub tap is the centred layer
+        std::vector<float> sub (2048), mid (2048);
+        CHECK (d.copyLatestLayer (0, sub.data(), sub.size()) == 2048 && d.copyLatestLayer (1, mid.data(), mid.size()) == 2048);
+        CHECK (rig::rmsOf (sub, 0, sub.size()) > 0.01 && rig::rmsOf (mid, 0, mid.size()) > 0.01);
+        Rig s;
+        s.soloSub();
+        s.noteOn (48);
+        s.run (12000);
+        std::vector<float> t (2048), m2 (2048);
+        s.eng.diagnostics().copyLatestLayer (0, t.data(), t.size());
+        s.eng.diagnostics().copyLatestLayer (1, m2.data(), m2.size());
+        CHECK (rig::rmsOf (t, 0, t.size()) > 0.01 && rig::rmsOf (m2, 0, m2.size()) < 1e-6);
+    }
     std::printf ("diagnostics ok (cpu load %.4f)\n", d.cpuLoad());
 }
 
