@@ -341,6 +341,7 @@ private:
             const int block = std::max (16, s.blockSize);
             engine_.prepare (static_cast<double> (s.sampleRate), block);
             engine_.reset();
+            engine_.setParameters (patch);   // latency depends on the patch (oversampling mode, limiter), so apply it before measuring
             const int latency = latencyOf (engine_);
             info.latency = latency;
             const std::int64_t total = tl.totalSamples + latency;

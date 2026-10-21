@@ -56,7 +56,7 @@ Note: a reference proves the value is read, not that it is audible or correct; b
 | `weight` | Weight | Macros | `Engine/SnaralEngine.cpp` | wired |
 | `growl` | Growl | Macros | `Dsp/Oscillators.h`, `Dsp/Texture.h`, `Engine/SnaralEngine.cpp` | wired |
 | `bite` | Bite | Macros | `Dsp/Contour.h`, `Dsp/Drive.h`, `Engine/SnaralEngine.cpp` | wired |
-| `motion` | Motion | Macros | `Dsp/Contour.h`, `Engine/SnaralEngine.cpp` | wired |
+| `motion` | Motion | Macros | `Dsp/Contour.h`, `Dsp/Fx/FormantFurnace.h`, `Engine/SnaralEngine.cpp` | wired |
 | `space` | Space | Macros | `Dsp/Width.h` | wired |
 | `mid_source_a` | Source A | Mid | `Dsp/Oscillators.h` | wired |
 | `mid_source_b` | Source B | Mid | `Dsp/Oscillators.h` | wired |

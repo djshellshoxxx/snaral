@@ -85,8 +85,8 @@ void SnaralAudioProcessor::releaseResources()
 
 bool SnaralAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
 {
-    const auto output = layouts.getMainOutputChannelSet();
-    return output == juce::AudioChannelSet::mono() || output == juce::AudioChannelSet::stereo();
+    // host-integration spec: one stereo output bus and no input; any other layout is refused, never downmixed
+    return layouts.getMainOutputChannelSet() == juce::AudioChannelSet::stereo() && layouts.getMainInputChannelSet().isDisabled();
 }
 
 double SnaralAudioProcessor::getTailLengthSeconds() const

@@ -9,7 +9,7 @@
     "contour_decay_ms": 300,
     "contour_depth": 40,
     "contour_release_ms": 200,
-    "contour_shape": "linear",
+    "contour_shape": "ease_in",
     "contour_sustain": 35,
     "drive_amount": 45,
     "drive_mix": 100,

@@ -1,8 +1,7 @@
 #pragma once
 
 // Adapts the lock-free EngineDiagnostics of the processor to the UI kit's read-only display sources.
-// The engine publishes one post-limiter mono tap, so the scope offers Output only (Sub and Mid taps are not exposed by
-// the engine and the scope view says so by disabling those buttons).
+// The engine publishes a post-limiter mono output tap plus pre-trim Sub and Mid layer taps for the scope's diagnosis views.
 
 #include "Engine/EngineDiagnostics.h"
 #include "UI/UiSources.h"
@@ -16,9 +15,17 @@ public:
         : diag (d), sampleRateFn (std::move (sampleRate)) {}
 
     // ScopeSource
-    int pullLatest (ScopeTap, int, float* dest, int numSamples) noexcept override
+    bool hasTap (ScopeTap) const noexcept override { return true; }
+    int pullLatest (ScopeTap tap, int, float* dest, int numSamples) noexcept override
     {
-        return static_cast<int> (diag.copyLatest (dest, static_cast<std::size_t> (juce::jmax (0, numSamples))));
+        const auto n = static_cast<std::size_t> (juce::jmax (0, numSamples));
+        switch (tap)
+        {
+            case ScopeTap::Sub: return static_cast<int> (diag.copyLatestLayer (0, dest, n));
+            case ScopeTap::Mid: return static_cast<int> (diag.copyLatestLayer (1, dest, n));
+            case ScopeTap::Output: break;
+        }
+        return static_cast<int> (diag.copyLatest (dest, n));
     }
     double getSampleRate() const noexcept override
     {
@@ -45,12 +52,15 @@ public:
         CpuReading r;
         r.valid = diag.scopeWritten() > 0;
         r.load = diag.cpuLoad();
-        r.overrunSinceLastRead = r.load > 1.0f;
+        const auto count = diag.overruns();   // a measured over-deadline render call, not the smoothed load
+        r.overrunSinceLastRead = count != seenOverruns;
+        seenOverruns = count;
         return r;
     }
 
 private:
     const EngineDiagnostics& diag;
     std::function<double()> sampleRateFn;
+    std::uint32_t seenOverruns = 0;
 };
 } // namespace snaral::ui

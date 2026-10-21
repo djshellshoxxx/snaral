@@ -328,6 +328,29 @@ static void testProjectStateRoundTrip()
     CHECK (third.options().getThemeId() == "midnight");
 }
 
+// Status line (macros-ui): the tempo chip appears while a sync mode is requested and the host gives no tempo, and goes away
+// when the LFO is free again; the overrun chip stays off in a normal run.
+static void testStatusChips()
+{
+    Rig rig ("chips");
+    auto& proc = *rig.proc;
+    auto setParam = [&] (const char* id, float domain)
+    {
+        auto* prm = proc.getParameters().getParameter (id);
+        CHECK (prm != nullptr);
+        prm->setValueNotifyingHost (prm->convertTo0to1 (domain));
+    };
+    setParam ("lfo_mode", 1.0f);
+    renderBlocks (proc, 4);
+    pump (400);
+    CHECK (rig.editor->statusBar().hasChip ("tempo"));
+    setParam ("lfo_mode", 0.0f);
+    renderBlocks (proc, 4);
+    pump (400);
+    CHECK (! rig.editor->statusBar().hasChip ("tempo"));
+    std::printf ("  status chips ok\n");
+}
+
 int main()
 {
     juce::ScopedJuceInitialiser_GUI init;
@@ -335,6 +358,7 @@ int main()
     testTweakEveryControl();
     testActionsAndOverlays();
     testProjectStateRoundTrip();
+    testStatusChips();
     std::printf ("EditorTests: all passed\n");
     return 0;
 }

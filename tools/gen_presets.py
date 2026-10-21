@@ -292,7 +292,7 @@ preset("Saw Rasp", ["rasp", "contour", "balanced", "clean", "mono"],
        weight=66, growl=76, bite=48, motion=20, space=0,
        mid_level=85, mid_source_a="saw_stack", mid_blend=0,
        filter_cutoff_hz=1500, filter_resonance=28,
-       contour_decay_ms=300, contour_sustain=35, contour_depth=40,
+       contour_decay_ms=300, contour_sustain=35, contour_shape="ease_in", contour_depth=40,
        drive_type="warm_saturation", drive_amount=45, drive_tone=55, voice_mode="mono")
 
 preset("Folded Jaw", ["rasp", "contour", "balanced", "clean", "mono"],
@@ -301,6 +301,7 @@ preset("Folded Jaw", ["rasp", "contour", "balanced", "clean", "mono"],
        mid_level=100, mid_source_a="folded_triangle", mid_table_position=60,
        filter_cutoff_hz=1900, filter_resonance=22,
        contour_decay_ms=280, contour_sustain=30, contour_depth=45,
+       traj_enabled=True, traj_time_mode="ms", traj_length_ms=450, traj_dest="source_position", traj_depth=45, traj_curve=50,
        drive_type="wave_fold", drive_amount=40, drive_tone=50, voice_mode="mono")
 
 preset("Machine Bell", ["texture", "static", "sub-forward", "metal", "mono"],

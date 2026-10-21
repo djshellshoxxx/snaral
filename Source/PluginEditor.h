@@ -118,6 +118,7 @@ private:
     bool tourAutoPending = false;
     std::uint64_t seenRestoreSequence = 0;
     int tickCount = 0;
+    std::uint32_t seenOverruns = 0, overrunChipUntilMs = 0;
     snaral::ParamSnapshot tourBackup;
     bool tourHasBackup = false;
 

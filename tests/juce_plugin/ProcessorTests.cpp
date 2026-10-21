@@ -74,12 +74,43 @@ static void testNoteProducesSoundAndSilence()
 static void testMonoBusAndBlockSizes()
 {
     SnaralAudioProcessor p;
-    CHECK (p.isBusesLayoutSupported ([] { juce::AudioProcessor::BusesLayout l; l.outputBuses.add (juce::AudioChannelSet::mono()); return l; }()));
+    CHECK (p.isBusesLayoutSupported ([] { juce::AudioProcessor::BusesLayout l; l.outputBuses.add (juce::AudioChannelSet::stereo()); return l; }()));
+    CHECK (! p.isBusesLayoutSupported ([] { juce::AudioProcessor::BusesLayout l; l.outputBuses.add (juce::AudioChannelSet::mono()); return l; }()));   // refused, not downmixed
     CHECK (! p.isBusesLayoutSupported ([] { juce::AudioProcessor::BusesLayout l; l.outputBuses.add (juce::AudioChannelSet::quadraphonic()); return l; }()));
     p.prepareToPlay (44100.0, 2048);
     CHECK (renderSeconds (p, 20, 1, noteOn (30), false) >= 0.0);
     CHECK (renderSeconds (p, 20, 2048, noteOn (30), false) > 0.01);
-    std::printf("mono bus ok\n");
+    std::printf("bus layout and block sizes ok\n");
+}
+
+// Audit checklist step 5: the host parameter list matches the registry (ID, version hint, range, default, automatable flag)
+// and a host-normalised value round-trips to the same DSP value within 1e-6.
+static void testHostParameterList()
+{
+    SnaralAudioProcessor p;
+    p.prepareToPlay (48000.0, 256);
+    int automatable = 0;
+    for (const auto& d : snaral::parameterTable)
+    {
+        auto* prm = dynamic_cast<juce::RangedAudioParameter*> (p.getParameters().getParameter (juce::String (std::string (d.id))));
+        CHECK (prm != nullptr);
+        CHECK (prm->getParameterID() == juce::String (std::string (d.id)));
+        CHECK (prm->getVersionHint() == 1);
+        CHECK (prm->isAutomatable() == d.automatable());
+        automatable += d.automatable() ? 1 : 0;
+        const auto& r = prm->getNormalisableRange();
+        CHECK (std::fabs (r.start - d.minimum) < 1.0e-6f && std::fabs (r.end - d.maximum) < 1.0e-6f * std::max (1.0f, d.maximum));
+        CHECK (std::fabs (prm->convertFrom0to1 (prm->getDefaultValue()) - d.defaultValue) <= 1.0e-5f * std::max (1.0f, std::fabs (d.defaultValue)));
+        for (const float norm : { 0.0f, 0.37f, 1.0f })
+        {
+            const float domain = d.fromNormalized (norm);
+            const float viaHost = prm->convertFrom0to1 (prm->convertTo0to1 (domain));
+            CHECK (std::fabs (viaHost - domain) <= 1.0e-5f * std::max (1.0f, std::fabs (domain)));
+        }
+    }
+    CHECK (automatable == 91);
+    CHECK (p.getBypassParameter() == p.getParameters().getParameter ("bypass"));
+    std::printf ("host parameter list ok (%d automatable of %d)\n", automatable, snaral::parameterCount);
 }
 
 static void testSampleAccurateMidi()
@@ -227,6 +258,7 @@ int main()
     juce::ScopedJuceInitialiser_GUI init;
     testNoteProducesSoundAndSilence();
     testMonoBusAndBlockSizes();
+    testHostParameterList();
     testSampleAccurateMidi();
     testBypassAndPanic();
     testLatencyAndTail();
