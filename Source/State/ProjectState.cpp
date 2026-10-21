@@ -647,7 +647,7 @@ DecodeResult decode (const void* data, int sizeInBytes)
         return r;
     }
     const auto declared = static_cast<juce::int64> (static_cast<juce::uint32> (juce::ByteOrder::littleEndianInt (bytes + 4)));
-    if (declared <= 0 || declared > static_cast<juce::int64> (sizeInBytes) - 8)
+    if (declared <= 0 || declared + 1 > static_cast<juce::int64> (sizeInBytes) - 8)   // text + terminating NUL
     {
         r.errors.push_back ({ "", "state is truncated or not a valid Snaral state blob" });
         return r;

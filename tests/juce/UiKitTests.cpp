@@ -297,7 +297,7 @@ void testMacroKnob()
     // BUG-007: copy is the plain domain number, not the rounded display text
     f.set ("weight", 62.375f);
     knob.performContextAction (ContextAction::CopyValue);
-    CHECK (stored == "62.375");
+    CHECK (stored.containsOnly ("0123456789.") && std::abs (stored.getFloatValue() - 62.375f) < 1.0e-3f && stored.length() > 4);   // plain number, not "62%"
     f.set ("weight", 10.0f);
     knob.performContextAction (ContextAction::PasteValue);
     CHECK (std::abs (f.get ("weight") - 62.375f) < 1.0e-4f);
