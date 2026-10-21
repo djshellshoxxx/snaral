@@ -19,4 +19,18 @@ Output files (every theme, 720x480 and 900x560 where relevant):
 | `options_*`, `help_*` | Options (plug-in and standalone, scrolled) and Help (topic, search, no match) |
 | `tour_step<NN>_<w>x<h>` | Every onboarding step over the stand-in editor |
 
-The stand-in editor only exists in the test; the real editor is composed by the integration worker.
+## Real editor snapshots
+
+`tests/juce_plugin/EditorSnapshotTests.cpp` (target `snaral_plugin_editorsnapshottests`) renders the REAL `SnaralAudioProcessorEditor`
+headlessly, with live audio behind the scope and meter. Run it under a virtual display if the platform needs one:
+
+`tools/build_juce.sh snaral_plugin_editorsnapshottests && xvfb-run -a build-juce/snaral_plugin_editorsnapshottests build-juce/editor-snapshots`
+
+| Prefix | Content |
+| --- | --- |
+| `real_main_<theme>_<w>x<h>` | Main view, every theme at 720x480, 900x560, 1440x900 |
+| `real_browser_<theme>_<w>x<h>` | Main view with the preset browser open (720 and 900) |
+| `real_advanced_<theme>_<w>x<h>` | Advanced view (900x560 and 720x480) |
+| `real_tab<0-7>_cdl_900x560` | Every Advanced tab |
+| `real_options/help/midimap/export/learn/randomized/toast_cdl_900x560` | Overlays and states |
+| `real_tour<0-9>_cdl_900x560` | Every onboarding step on the real editor |
