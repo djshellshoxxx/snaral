@@ -1,0 +1,4 @@
+/build/
+/build-engine/
+/cmake-build-*/
+/dist/

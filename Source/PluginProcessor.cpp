@@ -2,6 +2,7 @@
 #include "PluginEditor.h"
 #include "Parameters/MacroMappings.h"
 
+#include <algorithm>
 #include <cmath>
 #include <cstdlib>
 
@@ -17,6 +18,8 @@ SnaralAudioProcessor::SnaralAudioProcessor()
     : AudioProcessor (BusesProperties().withOutput ("Output", juce::AudioChannelSet::stereo(), true))
     , parameters_ (*this, nullptr, stateTreeType, createParameterLayout())
 {
+    keyboardState_.addListener (this);
+    uiMidiBuffer_.ensureSize (32768);
     for (std::size_t i = 0; i < snaral::macroParameterSpecs.size(); ++i)
     {
         const auto& spec = snaral::macroParameterSpecs[i];
@@ -69,7 +72,38 @@ void SnaralAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
     juce::ScopedNoDenormals noDenormals;
     refreshMacroSnapshot();
     buffer.clear();
+    if (uiMidiOverflow_.exchange (false, std::memory_order_acq_rel))
+    {
+        for (int channel = 1; channel <= 16; ++channel)
+            synth_.allNotesOff (channel, false);
+        uiMidiRead_.store (uiMidiWrite_.load (std::memory_order_acquire), std::memory_order_release);
+    }
     synth_.renderNextBlock (buffer, midi, 0, buffer.getNumSamples());
+
+    uiMidiBuffer_.clear();
+    auto read = uiMidiRead_.load (std::memory_order_relaxed);
+    const auto write = uiMidiWrite_.load (std::memory_order_acquire);
+    while (read != write)
+    {
+        const auto event = uiMidiEvents_[read % uiMidiEvents_.size()];
+        juce::MidiMessage message;
+        if (event.type == UiMidiEvent::Type::pitchBend)
+        {
+            const auto semitones = juce::jlimit (-2.0f, 2.0f, event.value);
+            const auto wheel = semitones < 0.0f
+                                   ? 8192 + juce::roundToInt (semitones * 4096.0f)
+                                   : 8192 + juce::roundToInt (semitones * 4095.5f);
+            message = juce::MidiMessage::pitchWheel (event.channel, wheel);
+        }
+        else if (event.type == UiMidiEvent::Type::noteOn)
+            message = juce::MidiMessage::noteOn (event.channel, event.note, event.value);
+        else
+            message = juce::MidiMessage::noteOff (event.channel, event.note);
+        uiMidiBuffer_.addEvent (message, 0);
+        ++read;
+    }
+    uiMidiRead_.store (read, std::memory_order_release);
+    synth_.renderNextBlock (buffer, uiMidiBuffer_, 0, buffer.getNumSamples());
 
     // The current sine-only bootstrap is treated as the temporary sub signal.
     // Weight will remain sub-only when the separate mid engine is introduced.
@@ -92,7 +126,118 @@ void SnaralAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
 
         for (int channel = 0; channel < buffer.getNumChannels(); ++channel)
             buffer.setSample (channel, sample, buffer.getSample (channel, sample) * currentWeightGain_);
+
+        const auto writeCount = visualizationWriteCount_.load (std::memory_order_relaxed);
+        const auto monoSample = buffer.getNumChannels() > 0 ? buffer.getSample (0, sample) : 0.0f;
+        visualizationSamples_[static_cast<std::size_t> (writeCount % visualizationSamples_.size())]
+            .store (monoSample, std::memory_order_relaxed);
+        visualizationWriteCount_.store (writeCount + 1, std::memory_order_release);
     }
+}
+
+void SnaralAudioProcessor::handleNoteOn (juce::MidiKeyboardState*, int channel, int note, float velocity)
+{
+    recordUiEvent ({ channel, note, velocity, UiMidiEvent::Type::noteOn });
+    enqueueUiNote (true, channel, note, velocity);
+}
+
+void SnaralAudioProcessor::handleNoteOff (juce::MidiKeyboardState*, int channel, int note, float velocity)
+{
+    recordUiEvent ({ channel, note, velocity, UiMidiEvent::Type::noteOff });
+    enqueueUiNote (false, channel, note, velocity);
+}
+
+void SnaralAudioProcessor::enqueueUiNote (bool noteOn, int channel, int note, float velocity) noexcept
+{
+    const auto write = uiMidiWrite_.load (std::memory_order_relaxed);
+    const auto read = uiMidiRead_.load (std::memory_order_acquire);
+    if (write - read >= uiMidiEvents_.size())
+    {
+        uiMidiOverflow_.store (true, std::memory_order_release);
+        return;
+    }
+    uiMidiEvents_[write % uiMidiEvents_.size()] = { channel, note, velocity,
+                                                    noteOn ? UiMidiEvent::Type::noteOn : UiMidiEvent::Type::noteOff };
+    uiMidiWrite_.store (write + 1, std::memory_order_release);
+}
+
+void SnaralAudioProcessor::enqueueUiPitchBend (float semitones) noexcept
+{
+    const auto write = uiMidiWrite_.load (std::memory_order_relaxed);
+    const auto read = uiMidiRead_.load (std::memory_order_acquire);
+    if (write - read >= uiMidiEvents_.size())
+    {
+        uiMidiOverflow_.store (true, std::memory_order_release);
+        return;
+    }
+    const auto bend = juce::jlimit (-2.0f, 2.0f, semitones);
+    const auto event = UiMidiEvent { 1, 0, bend, UiMidiEvent::Type::pitchBend };
+    recordUiEvent (event);
+    uiMidiEvents_[write % uiMidiEvents_.size()] = event;
+    uiMidiWrite_.store (write + 1, std::memory_order_release);
+}
+
+void SnaralAudioProcessor::recordUiEvent (const UiMidiEvent& event) noexcept
+{
+    constexpr std::uint32_t historyCapacity = 4096;
+    const auto index = recordedUiEventCount_.fetch_add (1, std::memory_order_relaxed);
+    auto value = juce::jlimit (0, 127, juce::roundToInt (event.value * 127.0f));
+    if (event.type == UiMidiEvent::Type::pitchBend)
+        value = juce::jlimit (0, 127, juce::roundToInt ((event.value + 2.0f) * 31.75f));
+    const auto type = static_cast<std::uint64_t> (event.type);
+    const auto millis = static_cast<std::uint32_t> (juce::Time::getMillisecondCounter());
+    const auto packed = (static_cast<std::uint64_t> (millis) << 20)
+                      | (type << 18)
+                      | (static_cast<std::uint64_t> (value) << 11)
+                      | (static_cast<std::uint64_t> (juce::jlimit (1, 16, event.channel) - 1) << 7)
+                      | static_cast<std::uint64_t> (juce::jlimit (0, 127, event.note));
+    recordedUiEvents_[index % historyCapacity].store (packed, std::memory_order_relaxed);
+}
+
+juce::MidiMessageSequence SnaralAudioProcessor::createRecordedMidiSequence() const
+{
+    juce::MidiMessageSequence sequence;
+    constexpr std::uint32_t historyCapacity = 4096;
+    const auto end = recordedUiEventCount_.load (std::memory_order_acquire);
+    const auto begin = end > historyCapacity ? end - historyCapacity : 0;
+    std::uint32_t firstMillis = 0;
+    bool hasTimestamp = false;
+    for (auto index = begin; index < end; ++index)
+    {
+        const auto packed = recordedUiEvents_[index % historyCapacity].load (std::memory_order_relaxed);
+        const auto millis = static_cast<std::uint32_t> (packed >> 20);
+        if (! hasTimestamp) { firstMillis = millis; hasTimestamp = true; }
+        const auto elapsedSeconds = static_cast<double> (static_cast<std::uint32_t> (millis - firstMillis)) / 1000.0;
+        const auto type = static_cast<unsigned> ((packed >> 18) & 0x3U);
+        const auto value = static_cast<int> ((packed >> 11) & 0x7fU);
+        const auto channel = static_cast<int> ((packed >> 7) & 0xfU) + 1;
+        const auto note = static_cast<int> (packed & 0x7fU);
+        juce::MidiMessage message;
+        if (type == static_cast<unsigned> (UiMidiEvent::Type::noteOn))
+            message = juce::MidiMessage::noteOn (channel, note, static_cast<juce::uint8> (value));
+        else if (type == static_cast<unsigned> (UiMidiEvent::Type::noteOff))
+            message = juce::MidiMessage::noteOff (channel, note);
+        else
+        {
+            const auto bend = value < 64 ? value * 8192 / 64 : 8192 + (value - 64) * 8191 / 63;
+            message = juce::MidiMessage::pitchWheel (channel, bend);
+        }
+        sequence.addEvent (message.withTimeStamp (elapsedSeconds));
+    }
+    sequence.sort();
+    return sequence;
+}
+
+void SnaralAudioProcessor::copyVisualizationSamples (std::array<float, 512>& destination) const noexcept
+{
+    const auto end = visualizationWriteCount_.load (std::memory_order_acquire);
+    const auto begin = end > destination.size() ? end - destination.size() : 0;
+    const auto available = static_cast<std::size_t> (end - begin);
+    const auto padding = destination.size() - available;
+    std::fill (destination.begin(), destination.begin() + static_cast<std::ptrdiff_t> (padding), 0.0f);
+    for (std::size_t i = 0; i < available; ++i)
+        destination[padding + i] = visualizationSamples_[(begin + i) % visualizationSamples_.size()]
+                                       .load (std::memory_order_relaxed);
 }
 
 void SnaralAudioProcessor::refreshMacroSnapshot() noexcept
