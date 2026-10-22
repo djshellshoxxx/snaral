@@ -1,7 +1,7 @@
 # Requested Workflow, Keyboard, and Effects Specification
 
-**Status:** Product requirements and staged implementation contract  
-**Source:** User's annotated Snaral UI screenshots and follow-up request  
+**Status:** Product requirements and staged implementation contract
+**Source:** User's annotated Snaral UI screenshots and follow-up request
 **Parent:** [Feature specification index](../SNARAL_FEATURE_SPEC_INDEX.md)
 
 ## 1. Playback and keyboard access
