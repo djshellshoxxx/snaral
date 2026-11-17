@@ -75,6 +75,7 @@ The sub-layer and mid-source can be developed independently once parameter-state
 ### User workflow and content
 
 - [Macros and user interface](specs/macros-ui.md)
+- [Requested playback, keyboard, macro detail, and effect workflow](specs/requested-workflow-and-effects.md)
 - [Main and Advanced UI layout](specs/ui-layout.md)
 - [Presets and variations](specs/preset-variation.md)
 - [Preset file contract](specs/preset-file-contract.md)
